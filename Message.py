@@ -1,7 +1,14 @@
-class MessageDecoder:
-  def tryToReadMessage(self, msg):
+from base64 import *
+
+class Message:
+  received_data_ = ''
+
+  def __init__(self, received_data):
+    received_data_ = received_data
+
+  def isValidCommand(self):
     try:
-      data=b64decode( msg )
+      data=b64decode( received_data_ )
     except:
       return False
     i=-1;

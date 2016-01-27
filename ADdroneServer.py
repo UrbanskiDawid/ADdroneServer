@@ -1,8 +1,7 @@
 import socket
 import sys
-from base64 import *
 import struct
-from MessageDecoder import *
+from Message import *
 from UartSender import *
 
 # Create a TCP/IP socket
@@ -20,7 +19,6 @@ server_address = (server_name, port_number)
 sock.bind(server_address)
 sock.listen(1)
 
-decoder = MessageDecoder()
 sender = UartSender()
 
 while True:
@@ -30,8 +28,9 @@ while True:
     print(sys.stderr, 'client connected:', client_address)
     while True:
       data=connection.recv(256)
+      message = Message(data)
       if data:
-        if not decoder.tryToReadMessage(data):
+        if not message.isValidCommand():
           print('received garbage "%s"' % data)
         sender.sendMessage('Hello, UART!') 
         connection.sendall(data)
