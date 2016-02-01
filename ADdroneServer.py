@@ -32,7 +32,7 @@ while True:
       if data:
         if not message.isValidCommand():
           print('received garbage "%s"' % data)
-        sender.sendMessage(data)
+        message.sendOnUart(sender)
         connection.sendall(data)
       else:
         print('connection closed');

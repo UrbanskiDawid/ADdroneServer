@@ -29,3 +29,6 @@ class Message:
       print("axis1=",axis1," axis2:",axis2," axis3:",axis3,"CRC",CRC," lastChar:",nl)
       return True
     return False
+
+  def sendOnUart(self, sender):
+    sender.sendMessage(received_data_)
