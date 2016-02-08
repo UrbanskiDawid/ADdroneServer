@@ -1,5 +1,4 @@
 import sys
-import struct
 from Message import *
 from UartSender import *
 from IpReceiver import *
@@ -22,10 +21,7 @@ while True:
       data = receiver.receive()
       if data:
         message = Message(data)
-        if not message.isValidCommand():
-          print('received garbage "%s"' % data)
         message.sendOnUart(sender)
-        '''connection.sendall(data) TODO: reply'''
       else:
         print('connection closed');
         receiver.close()

@@ -1,8 +1,19 @@
 import serial
 
 class UartSender:
-  def sendMessage(self, message):
-    connection = serial.Serial ("/dev/ttyAMA0") 
-    connection.baudrate = 9600 
-    connection.write(message)
-    connection.close()
+  connection = None;
+  message = None;
+
+  def __init__(self):
+    self.connection = serial.Serial("/dev/ttyAMA0")
+    self.connection.baudrate = 9600
+
+  def updateMessage(self, message):
+    self.message = message
+    self.sendMessage()
+
+  def sendMessage(self):
+    self.connection.write(self.message)
+
+  def closeConnection(self):
+    self.connection.close()
