@@ -1,23 +1,30 @@
 import socket
+import sys
+
 
 class IpReceiver:
     sock = None
     connection = None
-    logger = None
+    droneControler = None
 
-    def __init__(self, server_address):
+    def __init__(self, server_address, droneControler):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind(server_address)
         self.sock.listen(1)
+        self.droneControler = droneControler
 
     def acceptConnection(self):
-        connection, client_address = self.sock.accept()
+        self.connection, client_address = self.sock.accept()
         print(sys.stderr, 'client connected:', client_address)
 
-    def receive(self):
-        bufferSize = 256
-        data = connection.recv(bufferSize)
-        return data
+    def forwardIncomingPacket(self):
+        BUFFER_SIZE = 256
+        data = self.connection.recv(BUFFER_SIZE)
+        if data:
+            self.droneControler.newInstruction(data)
+        else:
+            print('connection closed');
+            self.closeConnection()
 
     def closeConnection(self):
-        sock.close()
+        self.sock.close()
