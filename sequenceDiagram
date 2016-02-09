@@ -1,0 +1,59 @@
+participant main
+participant ipReceiver
+participant timer
+participant droneControler
+participant uartSender
+!pragma teoz true
+
+main --> ipReceiver : waitForPacket
+...
+& droneControler -> uartSender : send(?)
+note left of ipReceiver
+  Packet A
+end note
+& droneControler -> uartSender : send(?)
+ipReceiver -> droneControler : newInstruction(A)
+& droneControler -> uartSender : send(?)
+ipReceiver -> timer : restart()
+& droneControler -> uartSender : send(A)
+main --> ipReceiver : waitForPacket
+& droneControler -> uartSender : send(A)
+...
+
+note left of ipReceiver
+  Packet A
+end note
+& droneControler -> uartSender : send(A)
+ipReceiver -> timer : restart()
+& droneControler -> uartSender : send(A)
+
+main --> ipReceiver : waitForPacket
+& droneControler -> uartSender : send(A)
+...
+note left of ipReceiver
+  Packet B
+end note
+& droneControler -> uartSender : send(A)
+ipReceiver -> droneControler : newInstruction(B)
+& droneControler -> uartSender : send(A)
+ipReceiver -> timer : restart()
+& droneControler -> uartSender : send(B)
+main --> ipReceiver : waitForPacket
+& droneControler -> uartSender : send(B)
+...
+
+note left of ipReceiver
+  invalid packet
+end note
+& droneControler -> uartSender : send(B)
+main --> ipReceiver : waitForPacket
+& droneControler -> uartSender : send(B)
+...
+droneControler -> uartSender : send(B)
+droneControler -> uartSender : send(B)
+
+timer -> ipReceiver : timeout()
+& droneControler -> uartSender : send(B)
+ipReceiver -> droneControler : land()
+& droneControler -> uartSender : send(B)
+droneControler -> uartSender : ???

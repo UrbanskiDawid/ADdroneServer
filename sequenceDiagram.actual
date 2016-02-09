@@ -1,0 +1,39 @@
+participant main
+participant ipReceiver
+participant droneControler
+participant uartSender
+!pragma teoz true
+
+main --> ipReceiver : waitForPacket
+...
+note left of ipReceiver
+  Packet A
+end note
+ipReceiver -> droneControler : newInstruction(A)
+droneControler -> uartSender : send(A)
+main --> ipReceiver : waitForPacket
+...
+
+note left of ipReceiver
+  Packet A
+end note
+ipReceiver -> droneControler : newInstruction(A)
+droneControler -> uartSender : send(A)
+
+main --> ipReceiver : waitForPacket
+...
+note left of ipReceiver
+  Packet B
+end note
+ipReceiver -> droneControler : newInstruction(B)
+droneControler -> uartSender : send(B)
+main --> ipReceiver : waitForPacket
+...
+
+note left of ipReceiver
+  invalid packet
+end note
+ipReceiver -> droneControler : newInstruction(invalid packet)
+droneControler -> uartSender : send(invalid packet)
+main --> ipReceiver : waitForPacket
+...
