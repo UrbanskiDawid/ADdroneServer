@@ -18,7 +18,7 @@ class IpReceiver:
         print(sys.stderr, 'client connected:', client_address)
 
     def forwardIncomingPacket(self):
-        BUFFER_SIZE = 256
+        BUFFER_SIZE = 16384
         data = self.connection.recv(BUFFER_SIZE)
         if data:
             self.droneControler.newInstruction(data)

@@ -1,4 +1,4 @@
-from UartSender import *
+from FakeUartSender import *
 from DroneControler import *
 from IpReceiver import *
 
@@ -10,7 +10,7 @@ port_number = int(sys.argv[1])
 server_name = ""  # "localhost"
 server_address = (server_name, port_number)
 
-uartSender = UartSender()
+uartSender = FakeUartSender()
 droneControler = DroneControler(uartSender)
 receiver = IpReceiver(server_address, droneControler)
 
