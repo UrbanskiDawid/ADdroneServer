@@ -6,6 +6,7 @@ class IpReceiver:
     sock = None
     connection = None
     droneControler = None
+    keepConnectionFlag = False
 
     def __init__(self, server_address, droneControler):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,6 +16,7 @@ class IpReceiver:
 
     def acceptConnection(self):
         self.connection, client_address = self.sock.accept()
+        self.keepConnectionFlag = True
         print(sys.stderr, 'client connected:', client_address)
 
     def forwardIncomingPacket(self):
@@ -23,8 +25,12 @@ class IpReceiver:
         if data:
             self.droneControler.newInstruction(data)
         else:
-            print('connection closed');
+            print('connection closed')
             self.closeConnection()
 
     def closeConnection(self):
+        self.keepConnectionFlag = False
         self.sock.close()
+
+    def keepConnection(self):
+        return self.keepConnectionFlag
