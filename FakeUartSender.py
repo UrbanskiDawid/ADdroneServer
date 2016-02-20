@@ -5,7 +5,8 @@ class FakeUartSender:
         print('UartSender constructed')
 
     def send(self, message):
-        print(str(message))
+#        print(str(message))
+        pass
 
     def closeConnection(self):
         print('Connection closed')

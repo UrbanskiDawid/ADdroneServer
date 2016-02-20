@@ -1,6 +1,6 @@
 import socket
 import sys
-
+import time
 
 class IpReceiver:
     sock = None
@@ -17,7 +17,7 @@ class IpReceiver:
             self.sock.bind(server_address)
             break
           except Exception as e:
-            print 'IpReceiver: failed ({0}/{1}): {2}\n'.format(tryNum,retryNumBind,e)
+            sys.stderr.write('IpReceiver: failed ({0}/{1}): {2}\n'.format(tryNum,retryNumBind,e))
             tryNum-=1
             if tryNum<1:
               raise Exception("IpReceiver can't bind socket!")
