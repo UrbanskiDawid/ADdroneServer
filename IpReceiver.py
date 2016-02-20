@@ -7,17 +7,29 @@ class IpReceiver:
     connection = None
     droneControler = None
     keepConnectionFlag = False
+    client_address = None
 
-    def __init__(self, server_address, droneControler):
+    def __init__(self, server_address, droneControler,retryNumBind):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind(server_address)
+        tryNum=retryNumBind
+        while True:
+          try:
+            self.sock.bind(server_address)
+            break
+          except Exception as e:
+            print 'IpReceiver: failed ({0}/{1}): {2}\n'.format(tryNum,retryNumBind,e)
+            tryNum-=1
+            if tryNum<1:
+              raise Exception("IpReceiver can't bind socket!")
+              return
+            time.sleep(5)
         self.sock.listen(1)
         self.droneControler = droneControler
 
     def acceptConnection(self):
-        self.connection, client_address = self.sock.accept()
+        self.connection, self.client_address = self.sock.accept()
         self.keepConnectionFlag = True
-        print(sys.stderr, 'client connected:', client_address)
+        print 'client connected:', self.client_address
 
     def forwardIncomingPacket(self):
         BUFFER_SIZE = 16384
@@ -25,8 +37,8 @@ class IpReceiver:
         if data:
             self.droneControler.newInstruction(data)
         else:
-            print('connection closed')
-            self.closeConnection()
+            print 'client disconnected:', self.client_address
+            self.keepConnectionFlag = False
 
     def closeConnection(self):
         self.keepConnectionFlag = False

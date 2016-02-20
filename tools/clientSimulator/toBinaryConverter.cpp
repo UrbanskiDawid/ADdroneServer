@@ -5,18 +5,26 @@
 
 using namespace std;
 
-int main()
+int main(int argc,char *args[])
 {
-  ifstream myfile ("start_sequence");
+  if(argc!=3)
+  {
+    std::cerr<<"arg1: input; arg2: output";
+    return 1;
+  }
+
+  ifstream myfile (args[1]/*"start_sequence"*/);
   if (!myfile.is_open())
   {
+    std::cerr<<"arg1: is not a file";
     return 1;
   }
 
   ofstream outfile;
-  outfile.open("start_sequence.dat", ios::binary | ios::out);
+  outfile.open(args[2]/*"start_sequence.dat"*/, ios::binary | ios::out);
   if (!outfile.is_open())
   {
+    std::cerr<<"arg2: can't open";
     return 1;
   }
 
@@ -36,5 +44,6 @@ int main()
   }
   outfile.close();
   myfile.close();
+  std::cout<<"converted '"<<args[1]<<"' to '"<<args[2]<<"'"<<std::endl;
   return 0;
 }
