@@ -31,14 +31,31 @@ class IpReceiver:
         self.keepConnectionFlag = True
         print 'client connected:', self.client_address
 
+    msg=''
     def forwardIncomingPacket(self):
-        BUFFER_SIZE = 16384
+        BUFFER_SIZE = 512
         data = self.connection.recv(BUFFER_SIZE)
-        if data:
-            self.droneControler.newInstruction(data)
-        else:
-            print 'client disconnected:', self.client_address
-            self.keepConnectionFlag = False
+        if not data:
+           print 'client disconnected:', self.client_address
+           self.keepConnectionFlag = False
+           return
+
+        i=0;
+        dLen=len(data)
+        while i<dLen:
+          if len(self.msg)==0:#no msg
+            if i+4>dLen:
+              break
+            if data[i+0]=='$' and data[i+1]=='$' and data[i+2]=='$' and data[i+3]=='$':
+              self.msg='$$$$'
+              i+=4
+              continue
+            i+=4
+          self.msg+=str(data[i])
+          i+=1
+          if len(self.msg) == 38:
+            self.droneControler.newInstruction(self.msg)
+            self.msg=[]
 
     def closeConnection(self):
         self.keepConnectionFlag = False

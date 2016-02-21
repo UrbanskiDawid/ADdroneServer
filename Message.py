@@ -69,10 +69,10 @@ class Message:
     def getCRC(self):
         return struct.unpack('f', bytes([self.data[30],self.data[29],self.data[28],self.data[27]]))[0]
 
-    def toStringAll():
+    def toStringAll(self):
         return str(unpack(self.messageFormat,self.data))
 
-    def toStringShort():
+    def toStringShort(self):
         tData=unpack(self.messageFormat,self.data)
         return "(axis1: {0:.2f},{1:.2f} axis2: {2:.2f},{3:.2f} cmd: 0x{4:02X} CRC: 0x{5:02X})".format( 
             tData[4],
@@ -85,4 +85,4 @@ class Message:
     def __str__(self):
      if not self.isValid():
        return "<Message> wrong data"
-     self.toStringShort()
+     return self.toStringShort()
