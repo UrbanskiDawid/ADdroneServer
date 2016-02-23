@@ -3,6 +3,7 @@ from FakeUartSender import *
 from DroneControler import *
 from IpReceiver import *
 from Settings import *
+from LogWriter import *
 import time
 import signal
 import sys
@@ -24,7 +25,10 @@ server_address = (server_name, SETTINGS.PORT)
 
 uartSender = FakeUartSender()
 droneControler = DroneControler(uartSender)
-receiver = IpReceiver(server_address, droneControler, SETTINGS.BINDRETRYNUM)
+logWriter = LogWriter()
+receiver = IpReceiver(server_address, droneControler, \
+                      SETTINGS.BINDRETRYNUM, \
+                      logWriter)
 
 def signal_handler(signal, frame):
   print('You pressed Ctrl+C!')

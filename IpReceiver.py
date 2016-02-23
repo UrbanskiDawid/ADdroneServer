@@ -8,8 +8,10 @@ class IpReceiver:
     droneControler = None
     keepConnectionFlag = False
     client_address = None
+    logWriter = None
 
-    def __init__(self, server_address, droneControler,retryNumBind):
+    def __init__(self, server_address, droneControler,retryNumBind, logWriter):
+        self.logWriter = logWriter
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tryNum=retryNumBind
         while True:
@@ -30,11 +32,14 @@ class IpReceiver:
         self.connection, self.client_address = self.sock.accept()
         self.keepConnectionFlag = True
         print 'client connected:', self.client_address
+        self.logWriter.noteEvent('Client connected: ' + \
+                                 str(self.client_address))
 
     msg=''
     def forwardIncomingPacket(self):
         BUFFER_SIZE = 512
         data = self.connection.recv(BUFFER_SIZE)
+        self.logWriter.noteEvent('Received: ' + str(data))
         if not data:
            print 'client disconnected:', self.client_address
            self.keepConnectionFlag = False
