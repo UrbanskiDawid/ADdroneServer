@@ -38,14 +38,19 @@ class IpReceiver:
     msg=''
     def forwardIncomingPacket(self):
         BUFFER_SIZE = 512
-        data = self.connection.recv(BUFFER_SIZE)
-        self.logWriter.noteEvent('Received: ' + str(data))
+        try:
+          data = self.connection.recv(BUFFER_SIZE)
+          self.logWriter.noteEvent('Received: ' + str(data))
+        except:
+          data=None
+          print 'forwardIncomingPacket ERROR'
+
         if not data:
            print 'client disconnected:', self.client_address
            self.keepConnectionFlag = False
            return
 
-        i=0;
+        i=0
         dLen=len(data)
         while i<dLen:
           if len(self.msg)==0:#no msg
@@ -56,11 +61,12 @@ class IpReceiver:
               i+=4
               continue
             i+=4
-          self.msg+=str(data[i])
-          i+=1
-          if len(self.msg) == 38:
-            self.droneControler.newInstruction(self.msg)
-            self.msg=[]
+          else:
+            self.msg+=str(data[i])
+            i+=1
+            if len(self.msg) == 38:
+              self.droneControler.newInstruction(self.msg)
+              self.msg=[]
 
     def closeConnection(self):
         self.keepConnectionFlag = False
