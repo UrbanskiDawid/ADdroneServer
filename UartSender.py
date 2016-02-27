@@ -19,7 +19,7 @@ class UartSender:
 #        self.connection.rtscts = False     #disable hardware (RTS/CTS) flow control
 #        self.connection.dsrdtr = False       #disable hardware (DSR/DTR) flow control
 
-     def send(self, message):
+    def send(self, message):
         self.connection.write(message)
         try:
           ans = self.connection.readline()   # read a '\n' terminated line
