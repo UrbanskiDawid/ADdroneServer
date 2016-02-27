@@ -2,7 +2,7 @@ class FakeUartSender:
     connection = None
 
     def __init__(self):
-        print('UartSender constructed')
+        print('FakeUartSender constructed')
 
     def send(self, message):
 #        print(str(message))

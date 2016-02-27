@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from FakeUartSender import *
+from     UartSender import *
 from DroneControler import *
 from IpReceiver import *
 from Settings import *
@@ -19,11 +20,14 @@ if SETTINGS.PORT==False:
 
 print ('Using port number '+str(SETTINGS.PORT))
 
-
 server_name = ""  # "localhost"
 server_address = (server_name, SETTINGS.PORT)
 
-uartSender = FakeUartSender()
+if SETTINGS.UARTDEVICE=='':
+  uartSender = FakeUartSender()
+else:
+  uartSender = UartSender(SETTINGS.UARTDEVICE,SETTINGS.UARTBAUNDRATE)
+
 droneControler = DroneControler(uartSender)
 logWriter = LogWriter()
 receiver = IpReceiver(server_address, droneControler, \
