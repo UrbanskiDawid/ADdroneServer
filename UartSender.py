@@ -23,7 +23,10 @@ class UartSender:
         self.connection.write(message)
         try:
           ans = self.connection.readline()   # read a '\n' terminated line
-          print 'UART: "',ans,'"'
+          if not ans:
+            raise  Error('no ans')
+          else:
+            print 'UART: "',ans,'"'
         except:
           print 'UART: no response'
 
