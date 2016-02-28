@@ -28,8 +28,5 @@ class UartSender:
           print 'UART: no response'
 
 
-    def send(self, message):
-        self.connection.write(message)
-
     def closeConnection(self):
         self.connection.close()
