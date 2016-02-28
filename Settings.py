@@ -18,5 +18,5 @@ class Settings:
 
     if config.has_section('UART'):
       self.UARTDEVICE = config.get('UART','device')
-      self.UARTBAUNDRATE = config.getint('UART','baundrate',9600)
+      self.UARTBAUNDRATE = config.getint('UART','baundrate')
 
