@@ -6,7 +6,7 @@ class UartSender:
 
     def __init__(self,device,baundRate):
         self.connection = serial.Serial(device)
-        self.connection.baudrate = baundrate
+        self.connection.baudrate = baundRate
         self.connection.timeout = 1        #non-block read
         self.connection.writeTimeout = 2   #timeout for write
         print "UartSender constructed (", device, " at ",baundRate,")"
