@@ -6,7 +6,7 @@ class Message:
     valid=None
 
     #message struct
-    messageFormat='!'\
+    messageFormat='<'\
                   'cccc'\
                   'ffff'\
                   'H'\
@@ -15,6 +15,7 @@ class Message:
     #SEE: https://docs.python.org/2/library/struct.html
     #
     #  !	network (= big-endian)	
+    #  <        little-endian
     #
     #Format	C Type		Python type		Standard size
     #  c	char		string of length 	1

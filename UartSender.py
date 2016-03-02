@@ -8,7 +8,7 @@ class UartSender:
         self.connection = serial.Serial(device)
         self.connection.baudrate = baundRate
         self.connection.timeout = 1        #non-block read
-        self.connection.writeTimeout = 2   #timeout for write
+        self.connection.writeTimeout = 1   #timeout for write
         print "UartSender constructed (", device, " at ",baundRate,")"
 
 # OTHER OPTIONS
@@ -21,12 +21,25 @@ class UartSender:
 
     def send(self, message):
         self.connection.write(message)
+        self.printMSG(message)
+        #self.readANS()
+
+    def printMSG(self,message):
+        i=0
+        sep=[4,8,12,16,20,23]
+        print " - ",
+        for b in message:
+          if i in sep: print "|",
+          print b.encode('hex'),
+          i=i+1
+
+    def readANS(self):
         try:
           ans = self.connection.readline()   # read a '\n' terminated line
           if not ans:
             raise  Error('no ans')
           else:
-            print 'UART: "',ans,'"'
+            print 'UART: "',str(ans).rstrip(),'"'
         except:
           print 'UART: no response'
 
