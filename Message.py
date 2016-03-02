@@ -10,7 +10,8 @@ class Message:
                   'cccc'\
                   'ffff'\
                   'H'\
-                  'cccccccccccccc'\
+                  'B'\
+                  'ccccccccccccc'\
                   'H'
     #SEE: https://docs.python.org/2/library/struct.html
     #
@@ -61,26 +62,28 @@ class Message:
         self.valid=True
         return True
 
-    def getPrefixInt(self): #int array
-        return [ord(self.data[0]),ord(self.data[1]),ord(self.data[2]),ord(self.data[3])]
-
-    def getPrefix(self): #int array
-        return unpack('cccc', self.data[ 3]+self.data[ 2]+self.data[ 1]+self.data[ 0])
-
-    def getCRC(self):
-        return struct.unpack('f', bytes([self.data[30],self.data[29],self.data[28],self.data[27]]))[0]
-
     def toStringAll(self):
         return str(unpack(self.messageFormat,self.data))
 
+    def toStringHex(self):#24242424|00000000|00000000|00000000|85f6123f|e803|0a|ffffffffffffffffffffffffff|9ea6
+        i=0
+        sep=[4,8,12,16,20,22,23,36]
+        ret=''
+        for b in self.data:
+          if i in sep: ret+='|'
+          ret+=b.encode('hex')
+          i=i+1
+        return ret
+
     def toStringShort(self):
         tData=unpack(self.messageFormat,self.data)
-        return "(axis1: {0:.2f},{1:.2f} axis2: {2:.2f},{3:.2f} cmd: 0x{4:02X} CRC: 0x{5:02X})".format( 
+        return "(analogs: {0:.2f},{1:.2f},{2:.2f},{3:.2f} cmd: {4:d} solverModeStabilization: {5:d} CRC: 0x{5:02X})".format(
             tData[4],
             tData[5],
             tData[6],
             tData[7],
             tData[8],
+            tData[9],
             tData[23]   )
 
     def __str__(self):

@@ -15,5 +15,6 @@ class DroneControler:
           print "ERROR: wrong msg"
           return
 
-        print time.strftime("%H:%M:%S"),str(msg)
+        print time.strftime("%H:%M:%S"),str(msg),"["+msg.toStringHex()+"]"
+
         self.uartSender.send(message)

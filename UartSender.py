@@ -21,17 +21,7 @@ class UartSender:
 
     def send(self, message):
         self.connection.write(message)
-        self.printMSG(message)
         #self.readANS()
-
-    def printMSG(self,message):
-        i=0
-        sep=[4,8,12,16,20,23]
-        print " - ",
-        for b in message:
-          if i in sep: print "|",
-          print b.encode('hex'),
-          i=i+1
 
     def readANS(self):
         try:
