@@ -5,9 +5,10 @@ from DroneControler import *
 from IpReceiver import *
 from Settings import *
 from LogWriter import *
-import time
+from time import sleep
 import signal
 import sys
+import threading
 
 SETTINGS = Settings()
 
@@ -34,11 +35,32 @@ receiver = IpReceiver(server_address, droneControler, \
                       SETTINGS.BINDRETRYNUM, \
                       logWriter)
 
-def signal_handler(signal, frame):
-  print('You pressed Ctrl+C!')
+
+heartBeatAlive=True
+def heartBeat():
+  global heartBeatAlive
+  global receiver
+  while heartBeatAlive:
+    sleep(2)
+    if receiver.keepConnection():
+      receiver.send("tick")
+
+t1 = threading.Thread(target=heartBeat)
+t1.start()
+
+def end_handler(signal, frame):
+  print('exiting!')
+
+  global receiver
   receiver.closeConnection();
+
+  global heartBeatAlive
+  heartBeatAlive=False
+  t1.join()
   sys.exit(0)
-signal.signal(signal.SIGINT, signal_handler)
+
+signal.signal(signal.SIGINT,  end_handler)
+signal.signal(signal.SIGTERM, end_handler)
 
 while True:
     print('waiting for a connection')

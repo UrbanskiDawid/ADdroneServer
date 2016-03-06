@@ -29,11 +29,18 @@ class IpReceiver:
         self.droneControler = droneControler
 
     def acceptConnection(self):
+        self.keepConnectionFlag = False
         self.connection, self.client_address = self.sock.accept()
         self.keepConnectionFlag = True
         print 'client connected:', self.client_address
         self.logWriter.noteEvent('Client connected: ' + \
                                  str(self.client_address))
+
+    def send(self,str):
+        try:
+          self.connection.send(str+"\n")
+        except:
+          pass
 
     msg=''
     def forwardIncomingPacket(self):
