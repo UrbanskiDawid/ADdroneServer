@@ -35,6 +35,7 @@ class IpReceiver:
         print 'client connected:', self.client_address
         self.logWriter.noteEvent('Client connected: ' + \
                                  str(self.client_address))
+        self.droneControler.enable()
 
     def send(self,str):
         try:
@@ -72,12 +73,13 @@ class IpReceiver:
             self.msg+=str(data[i])
             i+=1
             if len(self.msg) == 38:
-              self.droneControler.newInstruction(self.msg)
+              self.droneControler.setControlData(self.msg)
               self.msg=[]
 
     def closeConnection(self):
         self.keepConnectionFlag = False
         self.sock.close()
+        self.droneControler.disable()
 
     def keepConnection(self):
         return self.keepConnectionFlag
