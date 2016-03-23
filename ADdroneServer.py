@@ -15,23 +15,24 @@ SETTINGS = Settings()
 if (len(sys.argv) == 2):
     SETTINGS.PORT = int(sys.argv[1])
 
-if SETTINGS.PORT==False:
-    print ('missing port')
-    sys.exit()
-
-print ('Using port number '+str(SETTINGS.PORT))
-
 server_name = ""  # "localhost"
+
+if SETTINGS.SIMULATOR == True:
+    print('Using port simulator')
+else:
+    print('Using port number ' + str(SETTINGS.PORT))
+
 server_address = (server_name, SETTINGS.PORT)
 
-if SETTINGS.UARTDEVICE=='':
-  uartSender = FakeUartSender()
+if SETTINGS.UARTSIMULATOR == True:
+    uartSender = FakeUartSender()
 else:
-  uartSender = UartSender(SETTINGS.UARTDEVICE,SETTINGS.UARTBAUNDRATE)
+    uartSender = UartSender(SETTINGS.UARTDEVICE, SETTINGS.UARTBAUDRATE)
 
-droneControler = DroneControler(uartSender)
+#TODO make log writer global
 logWriter = LogWriter()
-receiver = IpReceiver(server_address, droneControler, \
+droneControler = DroneControler(uartSender, logWriter)
+receiver = IpReceiver(server_address, SETTINGS.SIMULATOR, droneControler, \
                       SETTINGS.BINDRETRYNUM, \
                       logWriter)
 

@@ -10,7 +10,7 @@ class TimerThread(Thread):
         self.handler = handler
         self.interval = interval 
  
-    def run(self): 
+    def run(self):
         while not self.stopped.wait(self.interval):
             if self.stopped.isSet():
                 print "> Breaking thread"
@@ -23,12 +23,13 @@ class TimerThread(Thread):
 class DroneControler:
     uartSender = None
 
-    def __init__(self, uartSender):
+    def __init__(self, uartSender, logWriter):
         self.uartSender = uartSender
         self.debugData = '';
         self.controlData = '';
         self.sendingThread = TimerThread(self.send, 0.05)
-        self.receivingThread = TimerThread(self.receive, 0.01)
+        self.receivingThread = TimerThread(self.receive, 0.05)
+        self.logWriter = logWriter
 
     def enable(self):
         self.sendingThread.start()
@@ -45,9 +46,12 @@ class DroneControler:
     
     # handler for receiving thread (call interval 0.01s -> 100Hz)   
     def receive(self):
-        self.uartSender.readANS()
-        # TODO implement receiving DebugData when ready on controller
-        # use uartSender object after refactoring it to handle bidirectional communication
+        data = self.uartSender.recv()
+        if data:
+            self.logWriter.noteEvent('DroneController: Received: ' + str(data))
+            print time.strftime("%H:%M:%S"), 'DroneController: Received: ' + str(data).rstrip()
+        else:
+            print "DroneController: ERROR: No data received from drone"
 
     # latch newly received ControlData for sending thread
     def setControlData(self, message):
@@ -56,6 +60,6 @@ class DroneControler:
           print "ERROR: wrong msg"
           return
 
-        print time.strftime("%H:%M:%S"),str(msg),"["+msg.toStringHex()+"]"
+        print time.strftime("%H:%M:%S"),'DroneController: Send data set to: ',str(msg),"["+msg.toStringHex()+"]"
 
         self.controlData = message

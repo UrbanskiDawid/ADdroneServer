@@ -1,6 +1,5 @@
 import serial
 
-
 class UartSender:
     connection = None
 
@@ -21,18 +20,17 @@ class UartSender:
 
     def send(self, message):
         self.connection.write(message)
-        #self.readANS()
 
-    def readANS(self):
-        try:
-          ans = self.connection.readline()   # read a '\n' terminated line
-          if not ans:
-            raise  Error('no ans')
-          else:
-            print 'UART: "',str(ans).rstrip(),'"'
-        except:
-          print 'UART: no response'
+    def recv(self):
+        data = None
+        nbBytesWaitingInInputBuffer = self.connection.inWaiting()
+        if nbBytesWaitingInInputBuffer > 0:
+            try:
+                data = self.connection.read(nbBytesWaitingInInputBuffer)
+            except:
+                print('UART: read timeout or error')
+        return data
 
-
+    #TODO: check if used
     def closeConnection(self):
         self.connection.close()

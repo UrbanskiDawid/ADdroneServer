@@ -12,7 +12,7 @@ class LogWriter:
         return str(ms)
 
     def __init__(self):
-        date = strftime("%d-%b-%Y-%H:%M:%S", gmtime())
+        date = strftime("%d-%b-%Y_%H-%M-%S", gmtime())
         fileName = 'logs/logs-' + date
         self.logfile = open(fileName, 'w')
 
