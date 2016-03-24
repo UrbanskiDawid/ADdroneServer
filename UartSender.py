@@ -8,7 +8,7 @@ class UartSender:
         self.connection.baudrate = baundRate
         self.connection.timeout = 1        #non-block read
         self.connection.writeTimeout = 1   #timeout for write
-        print "UartSender constructed (", device, " at ",baundRate,")"
+        print ("UartSender constructed (", device, " at ",baundRate,")")
 
 # OTHER OPTIONS
 #        self.connection.bytesize = serial.EIGHTBITS #number of bits per bytes
@@ -27,10 +27,17 @@ class UartSender:
         if nbBytesWaitingInInputBuffer > 0:
             try:
                 data = self.connection.read(nbBytesWaitingInInputBuffer)
+#                print("UART: received message ", str(data).rstrip() + "\n")
+                # ans = self.connection.readline()   # read a '\n' terminated line
+                # if not ans:
+                #   raise  Error('no ans')
+                # else:
+                #   print 'UART: "',str(ans).rstrip(),'"'
             except:
-                print('UART: read timeout or error')
+                print('UART: read timeout')
+#        else
+#            print('UART: no data received')
         return data
 
-    #TODO: check if used
-    def closeConnection(self):
-        self.connection.close()
+    #def closeConnection(self):
+    #    self.connection.close()

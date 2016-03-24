@@ -5,12 +5,10 @@ class FakeUartSender:
         print('FakeUartSender constructed')
 
     def send(self, message):
-        # print(str(message))
-        pass
+        print(str(message))
 
     def recv(self):
         return "adsasdasda"
 
-    # TODO check if this method is needed
-    def closeConnection(self):
-        print('Connection closed')
+    # def closeConnection(self):
+    #     print('Connection closed')

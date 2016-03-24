@@ -27,7 +27,6 @@ class IpReceiver:
             tryNum-=1
             if tryNum<1:
               raise Exception("IpReceiver can't bind socket!")
-              #end of execution - exception raised
             time.sleep(5)
         self.sock.listen(1)
         self.droneControler = droneControler
@@ -36,7 +35,7 @@ class IpReceiver:
         self.keepConnectionFlag = False
         self.connection, self.client_address = self.sock.accept()
         self.keepConnectionFlag = True
-        print 'client connected:', self.client_address
+        print('client connected:', self.client_address)
         self.logWriter.noteEvent('Client connected: ' + \
                                  str(self.client_address))
         self.droneControler.enable()
@@ -48,38 +47,20 @@ class IpReceiver:
         except:
           pass
 
-    msg=''
     def forwardIncomingPacket(self):
         BUFFER_SIZE = 512
         try:
-          data = self.connection.recv(BUFFER_SIZE)
-          self.logWriter.noteEvent('Received: ' + str(data))
+          bytesData = self.connection.recv(BUFFER_SIZE)
+          self.logWriter.noteEvent('Socket: Received: ' + str(bytesData))
         except:
-          data = None
-          print 'forwardIncomingPacket: IP receive ERROR/TIMEOUT'
+          bytesData = None
+          print('forwardIncomingPacket: IP receive ERROR/TIMEOUT')
 
-        if not data:
-           print 'client disconnected:', self.client_address
-           self.keepConnectionFlag = False
+        if not bytesData:
+           print('client timeout:', self.client_address)
            return
 
-        i=0
-        dLen=len(data)
-        while i<dLen:
-          if len(self.msg)==0:#no msg
-            if i+4>dLen:
-              break
-            if data[i+0]=='$' and data[i+1]=='$' and data[i+2]=='$' and data[i+3]=='$':
-              self.msg='$$$$'
-              i+=4
-              continue
-            i+=4
-          else:
-            self.msg+=str(data[i])
-            i+=1
-            if len(self.msg) == 38:
-              self.droneControler.setControlData(self.msg)
-              self.msg=[]
+        self.droneControler.setControlData(bytesData)
 
     def closeConnection(self):
         self.keepConnectionFlag = False

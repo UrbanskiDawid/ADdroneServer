@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 
 class Settings:
 
@@ -14,17 +14,15 @@ class Settings:
     UARTSIMULATOR = False
 
     def __init__(self):
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         config.read('ADdrone.cfg')
 
         if config.has_section('SERVER'):
             self.PORT = config.getint('SERVER', 'port')
             self.BINDRETRYNUM = config.getint('SERVER', 'bindRetryNum')
-            if config.has_option('SERVER', 'simulator'):
-                self.SIMULATOR = config.getboolean('SERVER', 'simulator')
+            self.SIMULATOR = config.getboolean('SERVER', 'simulator', fallback=False)
 
         if config.has_section('UART'):
             self.UARTDEVICE = config.get('UART', 'device')
             self.UARTBAUDRATE = config.getint('UART', 'baudrate')
-            if config.has_option('UART', 'simulator'):
-                self.UARTSIMULATOR = config.getboolean('UART', 'simulator')
+            self.UARTSIMULATOR = config.getboolean('UART', 'simulator', fallback=False)
