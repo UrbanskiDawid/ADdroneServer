@@ -27,8 +27,8 @@ class DroneControler:
         self.uartSender = uartSender
         self.debugData = '';
         self.controlData = '';
-        self.sendingThread = TimerThread(self.send, 0.05)
-        self.receivingThread = TimerThread(self.receive, 0.05)
+        self.sendingThread = TimerThread(self.send, 0.05)       # (call interval 0.05s -> 20Hz)
+        self.receivingThread = TimerThread(self.receive, 0.025)  # (call interval 0.05s -> 40Hz)
         self.logWriter = logWriter
 
     def enable(self):
@@ -39,17 +39,19 @@ class DroneControler:
         self.sendingThread.stop()
         self.receivingThread.stop() 
 
-    # handler for sending thread (call interval 0.05s -> 20Hz)
+    # handler for sending thread
     def send(self):
         if  len(self.controlData) > 0:
             self.uartSender.send(self.controlData)
-    
-    # handler for receiving thread (call interval 0.01s -> 100Hz)   
+            self.logWriter.noteEvent('DroneController: Send: [' + self.controlData + ']')
+            print time.strftime("%H:%M:%S"), 'DroneController: Send: [' + self.controlData + ']'
+
+    # handler for receiving thread
     def receive(self):
         data = self.uartSender.recv()
         if data:
-            self.logWriter.noteEvent('DroneController: Received: ' + str(data))
-            print time.strftime("%H:%M:%S"), 'DroneController: Received: ' + str(data).rstrip()
+            self.logWriter.noteEvent('DroneController: Received: [' + str(data) + ']')
+            print time.strftime("%H:%M:%S"), 'DroneController: Received: [' + str(data) + ']'
         else:
             print "DroneController: ERROR: No data received from drone"
 

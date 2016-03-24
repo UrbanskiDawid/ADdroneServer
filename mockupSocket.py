@@ -7,8 +7,20 @@ class mockupSocket:
 
     def __init__(self):
         print("mockupSocket constructed")
-        self.data.append("$$$$12213213243534534FFFFFFFFFFFFFFFFF")
-        self.data.append("$$$$12213213243534534EEEEEEEE000000000")
+        fname = "tools/clientSimulator/sequences/start"
+        with open(fname) as f:
+            content = f.readlines()
+            f.close()
+        for line in content:
+            datastring = self.HexDelimitedStringToDataString(line.rstrip())
+            self.data.append(datastring)
+        print("ip data loaded from file :", fname)
+
+    def HexDelimitedStringToDataString(self, line):
+        hexstr_list = line.split(",")
+        str_list = [chr(int(item)) for item in hexstr_list]
+        data = ''.join(str_list)
+        return data
 
     def bind(self, address):
         self.address = address
