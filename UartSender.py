@@ -33,6 +33,13 @@ class UartSender:
         except:
           print 'UART: no response'
 
+    def readData(self):
+        toRead = self.connection.inWaiting()
+        if toRead > 0: 
+            data = self.connection.read(toRead)
+            return data
+        else:
+            return ''
 
     def closeConnection(self):
         self.connection.close()
