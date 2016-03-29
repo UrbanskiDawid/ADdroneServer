@@ -89,7 +89,7 @@ class DroneControler:
             if len(self.dataBuffer) < 34:
                 self.dataBuffer += ch
             if len(self.dataBuffer) == 34:
-                debug = DebugData("$$$$" + self.dataCounter)
+                debug = DebugData("$$$$" + self.dataBuffer)
                 if debug.isValid():
                     self.debugData = debug
                     result = True           
