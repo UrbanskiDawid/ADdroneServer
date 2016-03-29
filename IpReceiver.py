@@ -76,6 +76,10 @@ class IpReceiver:
               self.droneControler.setControlData(self.msg)
               self.msg=[]
 
+    def setDebugData(self, debugData):
+        msgToSendViaIp = debugData.msg
+        # TODO implement sending DebugData via IP connection
+
     def closeConnection(self):
         self.keepConnectionFlag = False
         self.sock.close()

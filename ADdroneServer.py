@@ -34,7 +34,7 @@ logWriter = LogWriter()
 receiver = IpReceiver(server_address, droneControler, \
                       SETTINGS.BINDRETRYNUM, \
                       logWriter)
-
+droneControler.setIpConnection(receiver)
 
 heartBeatAlive=True
 def heartBeat():
