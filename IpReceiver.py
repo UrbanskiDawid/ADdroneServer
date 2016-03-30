@@ -11,10 +11,10 @@ class IpReceiver:
     client_address = None
     logWriter = None
 
-    def __init__(self, server_address, use_simulator, droneControler, retryNumBind, logWriter):
+    def __init__(self, server_address, use_simulator, simulatorLoopData, droneControler, retryNumBind, logWriter):
         self.logWriter = logWriter
         if use_simulator:
-            self.sock = mockupSocket()
+            self.sock = mockupSocket(simulatorLoopData)
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tryNum=retryNumBind
@@ -59,9 +59,9 @@ class IpReceiver:
           print 'forwardIncomingPacket: IP receive ERROR/TIMEOUT'
 
         if not data:
-           print 'client disconnected:', self.client_address
-           self.keepConnectionFlag = False
-           return
+            print 'client disconnected:', self.client_address
+            self.keepConnectionFlag = False
+            return
 
         i=0
         dLen=len(data)

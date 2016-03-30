@@ -5,7 +5,7 @@ class mockupSocket:
     dataIndex = 0
     data = []
 
-    def __init__(self):
+    def __init__(self, repeat):
         print("mockupSocket constructed")
         fname = "tools/clientSimulator/sequences/start"
         with open(fname) as f:
@@ -15,6 +15,8 @@ class mockupSocket:
             datastring = self.HexDelimitedStringToDataString(line.rstrip())
             self.data.append(datastring)
         print("ip data loaded from file :", fname)
+        self.__repeat = repeat
+        print("repeat sequence = " + str(self.__repeat))
 
     def HexDelimitedStringToDataString(self, line):
         hexstr_list = line.split(",")
@@ -35,12 +37,21 @@ class mockupSocket:
         pass
 
     def recv(self, bufferSize):
-        time.sleep(0.1)
+        sleepTime = 0.05
         ret_data = self.data[self.dataIndex]
         if self.dataIndex >= len(self.data) - 1:
-            self.dataIndex = 0
+            if self.__repeat:
+                self.dataIndex = 0
+            else:
+                sleepTime = 1.0
+                ret_data = None
         else:
             self.dataIndex += 1
+
+        if ret_data:
+            print("Data index: " + str(self.dataIndex))
+
+        time.sleep(sleepTime)
         return ret_data
 
     def close(self):

@@ -31,17 +31,26 @@ class DroneControler:
         self.__controlDataLock = Lock()  # must preceed __controlData, as used in get/set
         self.__controlData = ''
         self.__nbReads = 0
-        self.sendingThread = TimerThread(self.send, 0.05)        # 20 Hz
-        self.receivingThread = TimerThread(self.receive, 0.025)  # 40 Hz
+        self.sendingThread = None
+        self.receivingThread = None
         self.logWriter = logWriter
 
     def enable(self):
-        self.sendingThread.start()
-        self.receivingThread.start()
+        if self.sendingThread is None and self.receivingThread is None:
+            self.sendingThread = TimerThread(self.send, 0.05)        # 20 Hz
+            self.receivingThread = TimerThread(self.receive, 0.05)   # 20 Hz
+            self.sendingThread.start()
+            self.receivingThread.start()
+        else:
+            print "ERROR: UART threads are allready not none"
         
     def disable(self):
         self.sendingThread.stop()
-        self.receivingThread.stop() 
+        self.receivingThread.stop()
+        self.sendingThread.join()
+        self.receivingThread.join()
+        self.sendingThread = None
+        self.receivingThread = None
 
     # handler for sending thread
     def send(self):
