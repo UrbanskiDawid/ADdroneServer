@@ -36,7 +36,6 @@ receiver = IpReceiver(server_address, SETTINGS.SIMULATOR, droneControler, \
                       SETTINGS.BINDRETRYNUM, \
                       logWriter)
 
-
 heartBeatAlive=True
 def heartBeat():
   global heartBeatAlive
@@ -53,7 +52,7 @@ def end_handler(signal, frame):
   print('exiting!')
 
   global receiver
-  receiver.closeConnection();
+  receiver.closeConnection()
 
   global heartBeatAlive
   heartBeatAlive=False
