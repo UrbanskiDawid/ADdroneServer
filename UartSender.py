@@ -1,5 +1,6 @@
 import serial
 
+
 class UartSender:
     connection = None
 
