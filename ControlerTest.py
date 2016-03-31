@@ -9,7 +9,7 @@ class IpConnectionMock:
     def setDebugData(self, debugData):
         pass
    
-usart = UartSender("/dev/ttyAMA0", 19200)
+usart = UartSender("/dev/ttyAMA0", 115200)
         
 droneControler = DroneControler(usart)
 
@@ -19,15 +19,13 @@ droneControler.setIpConnection(ipConnectionMock)
 
 droneControler.enable()
 
-time.sleep(0.5)
-
 droneControler.setControlData(ControlData.SomeValidControlData().data)
 
 time.sleep(3)
 
 droneControler.setControlData(ControlData.StopCommand().data)
 
-time.sleep(0.1)
+time.sleep(0.05)
 
 droneControler.disable()
 

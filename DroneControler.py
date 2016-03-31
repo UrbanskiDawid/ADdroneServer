@@ -1,4 +1,5 @@
 from ControlData import *
+from DebugData import *
 from threading import Thread,Event
 import time
 
@@ -49,11 +50,12 @@ class DroneControler:
     def send(self):
         if  self.controlData is not None:
             self.usartConnection.send(self.controlData.data)
+	    print "sending"
     
     # handler for receiving thread (call interval 0.05s -> 20Hz)   
     def receive(self):
         data = self.usartConnection.readData()
-        dataLength = len(data)
+	dataLength = len(data)
         if dataLength == 0:
             self.timeoutCounter += 1
             if self.timeoutCounter >= self.maxTimeoutCounter:
@@ -90,6 +92,7 @@ class DroneControler:
                 self.dataBuffer += ch
             if len(self.dataBuffer) == 34:
                 debug = DebugData("$$$$" + self.dataBuffer)
+		print debug.toStringShort()
                 if debug.isValid():
                     self.debugData = debug
                     result = True           

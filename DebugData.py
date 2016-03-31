@@ -8,9 +8,9 @@ class DebugData:
     # message struct
     messageFormat='<'\
                   'cccc'\
-                  'fffffff'\ # roll, pitch, yaw, lat, lon, alt, speed
-                  'H'\ # controllerState
-                  'BB'\ # battery(tricky), flags(GPS fix | GPS 3D fix | low bat. vol. | nu | nu | nu | solver1 | solver2 
+                  'fffffff'\
+                  'H'\
+                  'BB'\
                   'H'
     
     def __init__(self, message):
@@ -50,7 +50,7 @@ class DebugData:
         
     def toStringShort(self):
         tData=unpack(self.messageFormat,self.data)
-        return "(rpy: {0:.2f},{1:.2f},{2:.2f},{3:.2f} state: {4:d} )".format(
+        return "(rpy: {0:.2f},{1:.2f},{2:.2f}, state: {3:d} )".format(
             tData[4],
             tData[5],
             tData[6],
