@@ -82,7 +82,8 @@ class IpReceiver:
               self.msg=[]
 
     def setDebugData(self, debugData):
-        msgToSendViaIp = debugData.msg
+        pass
+        #msgToSendViaIp = debugData.msg
         # TODO implement sending DebugData via IP connection
 
     def closeConnection(self):

@@ -1,4 +1,5 @@
 from ControlData import *
+from DebugData import *
 from threading import Thread, Event, Lock
 import time
 
@@ -66,8 +67,9 @@ class DroneControler:
         data = self.getControlData()
         if data is not None:
             self.usartConnection.send(data)
-            self.logWriter.noteEvent('DroneController: Send: [' + data + ']')
-            print time.strftime("%H:%M:%S ") + 'DroneController: Send: [' + data + ']'
+            log_msg = 'DroneController: Send: [' + data.encode("hex") + ']'
+            self.logWriter.noteEvent(log_msg)
+            print time.strftime("%H:%M:%S ") + log_msg
     
     # handler for receiving thread
     def receive(self):
@@ -84,8 +86,9 @@ class DroneControler:
             return
         self.timeoutCounter = 0
 
-        self.logWriter.noteEvent('DroneController: Received: [' + str(data) + ']')
-        print time.strftime("%H:%M:%S ") + 'DroneController: Received: [' + str(data) + ']'
+        log_msg = 'DroneController: Received: [' + data.encode("hex") + ']'
+        self.logWriter.noteEvent(log_msg)
+        print time.strftime("%H:%M:%S ") + log_msg
 
         i = 0
         while i < dataLength:  
@@ -115,9 +118,9 @@ class DroneControler:
                 if debug.isValid():
                     self.__debugData = debug
                     result = True
-                    log_msg = 'DroneController: valid DebugDataReceived: [' + str(data) + ']'
+                    log_msg = 'DroneController: valid DebugDataReceived: [' + str(debug) + ']'
                 else:
-                    log_msg = 'DroneController: INVALID DebugDataReceived: [' + str(data) + ']'
+                    log_msg = 'DroneController: INVALID DebugDataReceived: [' + str(debug) + ']'
 
                 self.logWriter.noteEvent(log_msg)
                 print time.strftime("%H:%M:%S ") + log_msg

@@ -1,3 +1,5 @@
+from DebugData import *
+
 class FakeUartSender:
     connection = None
     to_recv = ""
@@ -6,11 +8,13 @@ class FakeUartSender:
         print('FakeUartSender constructed')
 
     def send(self, message):
-        self.to_recv += message[-4:]
+        pass
+        # self.to_recv += message
 
     def recv(self):
-        data = self.to_recv
-        self.to_recv = ""
+        data = DebugData.SomeValidDebugData().data
+        # data = self.to_recv
+        # self.to_recv = ""
         return data
 
     # TODO check if this method is needed

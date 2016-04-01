@@ -1,7 +1,9 @@
 from DroneControler import DroneControler
 from ControlData import *
 from UartSender import *
+from FakeUartSender import *
 import time
+from LogWriter import *
 import struct
 
 class IpConnectionMock:
@@ -9,9 +11,11 @@ class IpConnectionMock:
     def setDebugData(self, debugData):
         pass
    
-usart = UartSender("/dev/ttyAMA0", 19200)
-        
-droneControler = DroneControler(usart)
+usart = FakeUartSender()
+# usart = UartSender("/dev/ttyAMA0", 19200)
+
+logWriter = LogWriter()
+droneControler = DroneControler(usart, logWriter)
 
 # attach mock of handler for ip connection
 ipConnectionMock = IpConnectionMock()
@@ -21,7 +25,7 @@ droneControler.enable()
 
 time.sleep(0.5)
 
-droneControler.setControlData(ControlData.SomeValidControlData().data)
+droneControler.setControlData(ControlData.SomeValidControlCommand().data)
 
 time.sleep(3)
 
