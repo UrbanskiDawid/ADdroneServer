@@ -55,7 +55,7 @@ class DroneControler:
     # handler for receiving thread (call interval 0.05s -> 20Hz)   
     def receive(self):
         data = self.usartConnection.readData()
-	dataLength = len(data)
+        dataLength = len(data)
         if dataLength == 0:
             self.timeoutCounter += 1
             if self.timeoutCounter >= self.maxTimeoutCounter:
@@ -69,6 +69,7 @@ class DroneControler:
         while i < dataLength:  
             if self.proceedReceiving(data[i]):
                     # valid DebugData received
+                    print self.debugData.toStringShort()
                     self.notifyIpConnection()
             i += 1
 
@@ -92,7 +93,6 @@ class DroneControler:
                 self.dataBuffer += ch
             if len(self.dataBuffer) == 34:
                 debug = DebugData("$$$$" + self.dataBuffer)
-		print debug.toStringShort()
                 if debug.isValid():
                     self.debugData = debug
                     result = True           

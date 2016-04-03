@@ -50,11 +50,12 @@ class DebugData:
         
     def toStringShort(self):
         tData=unpack(self.messageFormat,self.data)
-        return "(rpy: {0:.2f},{1:.2f},{2:.2f}, state: {3:d} )".format(
+        return "(rpy: ({0:.2f},{1:.2f},{2:.2f}) state: {3:d} CRC: 0x{4:04X} )".format(
             tData[4],
             tData[5],
             tData[6],
-            tData[11] )
+            tData[11],
+            tData[14] )
 
     def __str__(self):
         if not self.isValid():

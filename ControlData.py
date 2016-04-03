@@ -62,7 +62,7 @@ class ControlData:
         
     def toStringShort(self):
         tData=unpack(self.messageFormat,self.data)
-        return "(analogs: {0:.2f},{1:.2f},{2:.2f},{3:.2f} cmd: {4:d} mode: {5:d} CRC: 0x{5:02X})".format(
+        return "(analogs: {0:.2f},{1:.2f},{2:.2f},{3:.2f} cmd: {4:d} mode: {5:d} CRC: 0x{6:04X})".format(
             tData[4],
             tData[5],
             tData[6],
@@ -84,10 +84,10 @@ class ControlData:
         data += "00000000" # yaw = 0.0f
         data += "00000000" # throttle = 0.0f
         data += "d007" # command = 2000
-        data += "0a" # solver mode
+        data += "01" # solver mode - STABILIZATION
         while len(data) < 36 * 2:
             data += "f" # padding
-        data += "ffff" # CRC   
+        data += "7a72"   
         return ControlData(data.decode("hex"))
 
     @staticmethod
@@ -96,11 +96,11 @@ class ControlData:
         data += "00000000" # roll = 0.0f
         data += "00000000" # pitch = 0.0f
         data += "00000000" # yaw = 0.0f
-        data += "00000000" # throttle = 0.0f
+        data += "cdcccc3e" # throttle = 0.4f
         data += "e803" # command = 2000
-        data += "0a" # solver mode
+        data += "01" # solver mode - STABILIZATION
         while len(data) < 36 * 2:
             data += "f" # padding
-        data += "ffff" # CRC   
+        data += "8845"
         return ControlData(data.decode("hex"))
 
