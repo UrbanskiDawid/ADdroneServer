@@ -62,7 +62,7 @@ class ControlData:
         
     def toStringShort(self):
         tData=unpack(ControlData.messageFormat, self.data)
-        return "(analogs: {0:.2f},{1:.2f},{2:.2f},{3:.2f} cmd: {4:d} mode: {5:d} CRC: 0x{5:02X})".format(
+        return "(analogs: {0:.2f},{1:.2f},{2:.2f},{3:.2f} cmd: {4:d} mode: {5:d} CRC: 0x{6:04X})".format(
             tData[1],
             tData[2],
             tData[3],
@@ -78,44 +78,22 @@ class ControlData:
         
     @staticmethod
     def StopCommand():
-        data = "24242424" # preamble
-        data += "00000000" # roll = 0.0f
-        data += "00000000" # pitch = 0.0f
-        data += "00000000" # yaw = 0.0f
-        data += "00000000" # throttle = 0.0f
-        data += "d007" # command = 2000
-        data += "0a" # solver mode
-        while len(data) < 36 * 2:
-            data += "f" # padding
-        data += "ffff" # CRC   
-        return ControlData(data.decode("hex"))
-
-    @staticmethod
-    def SomeValidControlCommand2():
-        data = "24242424" # preamble
-        data += "00000000" # roll = 0.0f
-        data += "00000000" # pitch = 0.0f
-        data += "00000000" # yaw = 0.0f
-        data += "00000000" # throttle = 0.0f
-        data += "e803" # command = 1000
-        data += "0a" # solver mode
-        while len(data) < 36 * 2:
-            data += "f" # padding
-        data += "ffff" # CRC   
-        return ControlData(data.decode("hex"))
+        data = pack(ControlData.messageFormat,
+                    "$$$$",
+                    0.0, 0.0, 0.0, 0.0, #roll pith yaw throttle
+                    2000,               # cmd
+                    1,                  # solver mode
+                    "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",    #padding
+                    0x727a)             #crc
+        return ControlData(data)
 
     @staticmethod
     def SomeValidControlCommand():
         data = pack(ControlData.messageFormat,
                     "$$$$",
-                    0.0, 0.0, 0.0, 0.0, #roll pith yaw throttle
+                    0.0, 0.0, 0.0, 0.4, #roll pith yaw throttle
                     1000,               # cmd
-                    10,                 # solver mode
+                    1,                  # solver mode
                     "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",    #padding
-                    65535)              #crc
-
-        if ControlData.SomeValidControlCommand2().data != data:
-            print "ERROR: invalid data. data : ", data.encode("hex"), "\n"
-            print "ERROR l2 Command2 : ", ControlData.SomeValidControlCommand2().data.encode("hex")
-            return ""
+                    0x4588)             #crc
         return ControlData(data)
