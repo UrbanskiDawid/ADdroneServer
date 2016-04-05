@@ -1,6 +1,7 @@
 import socket
 import sys
 import time
+from mockupSocket import *
 
 class IpReceiver:
     sock = None
@@ -10,9 +11,12 @@ class IpReceiver:
     client_address = None
     logWriter = None
 
-    def __init__(self, server_address, droneControler,retryNumBind, logWriter):
+    def __init__(self, server_address, use_simulator, simulatorLoopData, droneControler, retryNumBind, logWriter):
         self.logWriter = logWriter
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if use_simulator:
+            self.sock = mockupSocket(simulatorLoopData)
+        else:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tryNum=retryNumBind
         while True:
           try:
@@ -23,7 +27,7 @@ class IpReceiver:
             tryNum-=1
             if tryNum<1:
               raise Exception("IpReceiver can't bind socket!")
-              return
+              #end of execution - exception raised
             time.sleep(5)
         self.sock.listen(1)
         self.droneControler = droneControler
@@ -37,9 +41,10 @@ class IpReceiver:
                                  str(self.client_address))
         self.droneControler.enable()
 
-    def send(self,str):
+    def send(self, data):
         try:
-          self.connection.send(str+"\n")
+          self.connection.send(data+"\n")
+          self.logWriter.noteEvent('Socket: Send: ' + str(data))
         except:
           pass
 
@@ -50,13 +55,13 @@ class IpReceiver:
           data = self.connection.recv(BUFFER_SIZE)
           self.logWriter.noteEvent('Received: ' + str(data))
         except:
-          data=None
-          print 'forwardIncomingPacket ERROR'
+          data = None
+          print 'forwardIncomingPacket: IP receive ERROR/TIMEOUT'
 
         if not data:
-           print 'client disconnected:', self.client_address
-           self.keepConnectionFlag = False
-           return
+            print 'client disconnected:', self.client_address
+            self.keepConnectionFlag = False
+            return
 
         i=0
         dLen=len(data)
@@ -77,7 +82,8 @@ class IpReceiver:
               self.msg=[]
 
     def setDebugData(self, debugData):
-        msgToSendViaIp = debugData.msg
+        pass
+        #msgToSendViaIp = debugData.msg
         # TODO implement sending DebugData via IP connection
 
     def closeConnection(self):

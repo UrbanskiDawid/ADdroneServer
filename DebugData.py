@@ -6,12 +6,15 @@ class DebugData:
     valid = None
     
     # message struct
-    messageFormat='<'\
-                  'cccc'\
-                  'fffffff'\
-                  'H'\
-                  'BB'\
-                  'H'
+    messageFormat = ('<4s3f3ffHBBH')
+    # '<'         encoding = network = big endian
+    # '4s',       # preamble $$$$
+    # '3f',       # roll, pitch, yaw
+    # '3f',       # lat, lon, alt
+    # 'f',        # speed
+    # 'H',        # controllerState
+    # 'BB',       # battery(tricky), flags(GPS fix | GPS 3D fix | low bat. vol. | nu | nu | nu | solver1 | solver2
+    # 'H'))       # crc
     
     def __init__(self, message):
         self.data = message
@@ -49,15 +52,28 @@ class DebugData:
         return True
         
     def toStringShort(self):
-        tData=unpack(self.messageFormat,self.data)
-        return "(rpy: ({0:.2f},{1:.2f},{2:.2f}) state: {3:d} CRC: 0x{4:04X} )".format(
-            tData[4],
-            tData[5],
-            tData[6],
-            tData[11],
-            tData[14] )
+        tData = unpack(DebugData.messageFormat, self.data)
+        return "(rpy: {0:.2f},{1:.2f},{2:.2f}, state: {3:d} )".format(
+            tData[1],
+            tData[2],
+            tData[3],
+            tData[9])
 
     def __str__(self):
         if not self.isValid():
             return "<DebugData> wrong data"
         return self.toStringShort()
+
+    @staticmethod
+    def SomeValidDebugData():
+        data = pack(DebugData.messageFormat,
+                    "$$$$",
+                    0.0, 0.0, 0.0,
+                    0.0, 0.0, 0.0,
+                    0.0,
+                    1000,   # ctrl state
+                    10,     # bat
+                    10,     # flags
+                    65535)  # crc
+        return DebugData(data)
+

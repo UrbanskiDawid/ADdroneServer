@@ -21,26 +21,18 @@ class UartSender:
 
     def send(self, message):
         self.connection.write(message)
-        #self.readANS()
 
-    def readANS(self):
-        try:
-          ans = self.connection.readline()   # read a '\n' terminated line
-          if not ans:
-            raise  Error('no ans')
-          else:
-            print 'UART: "',str(ans).rstrip(),'"'
-        except:
-          print 'UART: no response'
+    def recv(self):
+        data = None
+        nbBytesWaitingInInputBuffer = self.connection.inWaiting()
+        print "to read: ", nbBytesWaitingInInputBuffer
+        if nbBytesWaitingInInputBuffer > 0:
+            try:
+                data = self.connection.read(nbBytesWaitingInInputBuffer)
+            except:
+                print('UART: read timeout or error')
+        return data
 
-    def readData(self):
-        toRead = self.connection.inWaiting()
-        print "to read: ", toRead
-        if toRead > 0: 
-            data = self.connection.read(toRead)
-            return data
-        else:
-            return ''
-
+    #TODO: check if used
     def closeConnection(self):
         self.connection.close()

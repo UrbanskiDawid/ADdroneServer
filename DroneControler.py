@@ -1,6 +1,6 @@
 from ControlData import *
 from DebugData import *
-from threading import Thread,Event
+from threading import Thread, Event, Lock
 import time
 
 class TimerThread(Thread): 
@@ -10,7 +10,7 @@ class TimerThread(Thread):
         self.handler = handler
         self.interval = interval 
  
-    def run(self): 
+    def run(self):
         while not self.stopped.wait(self.interval):
             if self.stopped.isSet():
                 print "> Breaking thread"
@@ -21,61 +21,83 @@ class TimerThread(Thread):
         self.stopped.set()
 
 class DroneControler:
+# TODO make all members private
     usartConnection = None
     ipConnection = None
-    
-    controlData = None
-    debugData = None
-
+    __controlDataLock = None    
+    __controlData = None
+    __debugData = None
+    sendingThread = None
+    receivingThread = None
+    logWriter = None
+    __nbReads = 0
     maxTimeoutCounter = 20 # 20 * 0.05 = 1s
     timeoutCounter = 0
+    preBuffer = ''
+    dataBuffer = ''
+    preambleFlag = False
 
-    def __init__(self, usartConnection):
+    def __init__(self, usartConnection, logWriter):
         self.usartConnection = usartConnection
-        self.sendingThread = TimerThread(self.send, 0.05)
-        self.receivingThread = TimerThread(self.receive, 0.05)
-        
+        self.__controlDataLock = Lock()
+        self.logWriter = logWriter
+
     def setIpConnection(self, ipConnection):
         self.ipConnection = ipConnection
 
     def enable(self):
-        self.sendingThread.start()
-        self.receivingThread.start()
+        if self.sendingThread is None and self.receivingThread is None:
+            self.sendingThread = TimerThread(self.send, 0.05)        # 20 Hz
+            self.receivingThread = TimerThread(self.receive, 0.05)   # 20 Hz
+            self.sendingThread.start()
+            self.receivingThread.start()
+        else:
+            print "ERROR: UART threads are allready not none"
         
     def disable(self):
         self.sendingThread.stop()
-        self.receivingThread.stop() 
+        self.receivingThread.stop()
+        self.sendingThread.join()
+        self.receivingThread.join()
+        self.sendingThread = None
+        self.receivingThread = None
 
-    # handler for sending thread (call interval 0.05s -> 20Hz)
+    # handler for sending thread
     def send(self):
-        if  self.controlData is not None:
-            self.usartConnection.send(self.controlData.data)
-	    print "sending"
+        data = self.getControlData()
+        if data is not None:
+            self.usartConnection.send(data)
+            log_msg = 'DroneController: Send: [' + data.encode("hex") + ']'
+            self.logWriter.noteEvent(log_msg)
+            print time.strftime("%H:%M:%S ") + log_msg
     
-    # handler for receiving thread (call interval 0.05s -> 20Hz)   
+    # handler for receiving thread
     def receive(self):
-        data = self.usartConnection.readData()
+        data = self.usartConnection.recv()
         dataLength = len(data)
         if dataLength == 0:
             self.timeoutCounter += 1
             if self.timeoutCounter >= self.maxTimeoutCounter:
-                # TODO set controller state in latched DebugData as NO_CONNECTION
+                # TODO set controller state in latched __debugData as NO_CONNECTION
                 print "USART receiving thread timeout ! - setting NO_CONNECTION"
                 self.timeoutCounter = 0
+            else:
+                print "DroneController: WARNING: No data received from drone [" + str(self.timeoutCounter) + "] time(s)"
             return
         self.timeoutCounter = 0
+
+        log_msg = 'DroneController: Received: [' + data.encode("hex") + ']'
+        self.logWriter.noteEvent(log_msg)
+        print time.strftime("%H:%M:%S ") + log_msg
 
         i = 0
         while i < dataLength:  
             if self.proceedReceiving(data[i]):
                     # valid DebugData received
-                    print self.debugData.toStringShort()
                     self.notifyIpConnection()
+            # TODO difficult to detect wrong data. Impossible to print or log error message
             i += 1
 
-    preBuffer = ''
-    dataBuffer = ''
-    preambleFlag = False
     def proceedReceiving(self, ch):
         if ch == '$':
             self.preBuffer += ch
@@ -94,27 +116,51 @@ class DroneControler:
             if len(self.dataBuffer) == 34:
                 debug = DebugData("$$$$" + self.dataBuffer)
                 if debug.isValid():
-                    self.debugData = debug
-                    result = True           
+                    self.__debugData = debug
+                    result = True
+                    log_msg = 'DroneController: valid DebugDataReceived: [' + str(debug) + ']'
+                else:
+                    log_msg = 'DroneController: INVALID DebugDataReceived: [' + str(debug) + ']'
+
+                self.logWriter.noteEvent(log_msg)
+                print time.strftime("%H:%M:%S ") + log_msg
+
                 self.preBuffer = ''
                 self.dataBuffer = ''
                 self.preambleFlag = False
+
         self.preBuffer = ''  
         return result
        
     def notifyIpConnection(self):
         if self.ipConnection is not None:
-            self.ipConnection.setDebugData(self.debugData)
+            self.ipConnection.setDebugData(self.__debugData)
         else:
             print "Valid DebugData received but not forwarded - no IpConnection attached" 
 
     # latch newly received ControlData for sending thread
-    def setControlData(self, message):
-        msg = ControlData(message)
-        if not msg.isValid():
-          print "ERROR: wrong msg"
-          return
+    def setControlData(self, value):
+        controlData = ControlData(value)
+        if not controlData.isValid():
+            print time.strftime("%H:%M:%S ") + "DroneController: ERROR: wrong ControlData"
+            return
 
-        print time.strftime("%H:%M:%S"), msg.toStringShort()
+        print time.strftime("%H:%M:%S ") + 'DroneController: Send data set to: ' + str(controlData) + "[" + controlData.toStringHex() + "]"
 
-        self.controlData = msg
+        self.__controlDataLock.acquire()
+        self.__controlData = value
+        self.__nbReads = 0
+        self.__controlDataLock.release()
+
+    def getControlData(self):
+        self.__controlDataLock.acquire()
+        data = self.__controlData
+        self.__nbReads += 1
+        nbReads = self.__nbReads
+        self.__controlDataLock.release()
+        if nbReads > 1:
+            log_message = 'DroneController: Waring: same data read [' + str(nbReads) + '] times.'
+            print time.strftime("%H:%M:%S") + " " + log_message
+            self.logWriter.noteEvent(log_message)
+        return data
+

@@ -15,23 +15,26 @@ SETTINGS = Settings()
 if (len(sys.argv) == 2):
     SETTINGS.PORT = int(sys.argv[1])
 
-if SETTINGS.PORT==False:
-    print ('missing port')
-    sys.exit()
-
-print ('Using port number '+str(SETTINGS.PORT))
-
 server_name = ""  # "localhost"
+
+if SETTINGS.SIMULATOR == True:
+    print('Using port simulator')
+else:
+    print('Using port number ' + str(SETTINGS.PORT))
+
 server_address = (server_name, SETTINGS.PORT)
 
-if SETTINGS.UARTDEVICE=='':
-  uartSender = FakeUartSender()
+if SETTINGS.UARTSIMULATOR == True:
+    uartSender = FakeUartSender()
 else:
-  uartSender = UartSender(SETTINGS.UARTDEVICE,SETTINGS.UARTBAUNDRATE)
+    uartSender = UartSender(SETTINGS.UARTDEVICE, SETTINGS.UARTBAUDRATE)
 
-droneControler = DroneControler(uartSender)
+closeServerApp = False
+
+#TODO make log writer global
 logWriter = LogWriter()
-receiver = IpReceiver(server_address, droneControler, \
+droneControler = DroneControler(uartSender, logWriter)
+receiver = IpReceiver(server_address, SETTINGS.SIMULATOR, True, droneControler, \
                       SETTINGS.BINDRETRYNUM, \
                       logWriter)
 droneControler.setIpConnection(receiver)
@@ -49,21 +52,24 @@ t1 = threading.Thread(target=heartBeat)
 t1.start()
 
 def end_handler(signal, frame):
-  print('exiting!')
-
+  print('end handler called')
+  global closeServerApp
   global receiver
-  receiver.closeConnection();
-
-  global heartBeatAlive
-  heartBeatAlive=False
-  t1.join()
-  sys.exit(0)
+  receiver.keepConnectionFlag = False
+  closeServerApp = True
 
 signal.signal(signal.SIGINT,  end_handler)
 signal.signal(signal.SIGTERM, end_handler)
 
-while True:
+while not closeServerApp:
     print('waiting for a connection')
     receiver.acceptConnection()
-    while receiver.keepConnection():
+    while (receiver.keepConnection() and not closeServerApp):
         receiver.forwardIncomingPacket()
+    receiver.closeConnection()
+    print('connection closed')
+
+print('exiting')
+heartBeatAlive = False
+t1.join()
+sys.exit(0)

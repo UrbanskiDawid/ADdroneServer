@@ -7,11 +7,11 @@ class ControlData:
     
     # message struct
     messageFormat='<'\
-                  'cccc'\
-                  'ffff'\
+                  '4s'\
+                  '4f'\
                   'H'\
                   'B'\
-                  'ccccccccccccc'\
+                  '13s'\
                   'H'
     
     def __init__(self, message):
@@ -61,15 +61,15 @@ class ControlData:
         return ret
         
     def toStringShort(self):
-        tData=unpack(self.messageFormat,self.data)
+        tData=unpack(ControlData.messageFormat, self.data)
         return "(analogs: {0:.2f},{1:.2f},{2:.2f},{3:.2f} cmd: {4:d} mode: {5:d} CRC: 0x{6:04X})".format(
+            tData[1],
+            tData[2],
+            tData[3],
             tData[4],
             tData[5],
             tData[6],
-            tData[7],
-            tData[8],
-            tData[9],
-            tData[23]   )
+            tData[8])
 
     def __str__(self):
         if not self.isValid():
@@ -78,29 +78,22 @@ class ControlData:
         
     @staticmethod
     def StopCommand():
-        data = "24242424" # preamble
-        data += "00000000" # roll = 0.0f
-        data += "00000000" # pitch = 0.0f
-        data += "00000000" # yaw = 0.0f
-        data += "00000000" # throttle = 0.0f
-        data += "d007" # command = 2000
-        data += "01" # solver mode - STABILIZATION
-        while len(data) < 36 * 2:
-            data += "f" # padding
-        data += "7a72"   
-        return ControlData(data.decode("hex"))
+        data = pack(ControlData.messageFormat,
+                    "$$$$",
+                    0.0, 0.0, 0.0, 0.0, #roll pith yaw throttle
+                    2000,               # cmd
+                    1,                  # solver mode
+                    "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",    #padding
+                    0x727a)             #crc
+        return ControlData(data)
 
     @staticmethod
-    def SomeValidControlData():
-        data = "24242424" # preamble
-        data += "00000000" # roll = 0.0f
-        data += "00000000" # pitch = 0.0f
-        data += "00000000" # yaw = 0.0f
-        data += "cdcccc3e" # throttle = 0.4f
-        data += "e803" # command = 2000
-        data += "01" # solver mode - STABILIZATION
-        while len(data) < 36 * 2:
-            data += "f" # padding
-        data += "8845"
-        return ControlData(data.decode("hex"))
-
+    def SomeValidControlCommand():
+        data = pack(ControlData.messageFormat,
+                    "$$$$",
+                    0.0, 0.0, 0.0, 0.4, #roll pith yaw throttle
+                    1000,               # cmd
+                    1,                  # solver mode
+                    "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",    #padding
+                    0x4588)             #crc
+        return ControlData(data)
