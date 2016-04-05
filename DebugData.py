@@ -53,11 +53,12 @@ class DebugData:
         
     def toStringShort(self):
         tData = unpack(DebugData.messageFormat, self.data)
-        return "(rpy: {0:.2f},{1:.2f},{2:.2f}, state: {3:d} )".format(
+        return "(rpy: ({0:.2f},{1:.2f},{2:.2f}) state: {3:d} CRC: 0x{4:04X} )".format(
             tData[1],
             tData[2],
             tData[3],
-            tData[9])
+            tData[9],
+            tData[12])
 
     def __str__(self):
         if not self.isValid():
@@ -74,6 +75,6 @@ class DebugData:
                     1000,   # ctrl state
                     10,     # bat
                     10,     # flags
-                    65535)  # crc
+                    65535)  # crc fake
         return DebugData(data)
 

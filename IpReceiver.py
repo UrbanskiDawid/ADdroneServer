@@ -27,7 +27,7 @@ class IpReceiver:
             tryNum-=1
             if tryNum<1:
               raise Exception("IpReceiver can't bind socket!")
-              #end of execution - exception raised
+              #end of method execution - exception raised
             time.sleep(5)
         self.sock.listen(1)
         self.droneControler = droneControler
