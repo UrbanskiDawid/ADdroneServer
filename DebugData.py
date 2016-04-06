@@ -7,14 +7,15 @@ class DebugData:
     
     # message struct
     messageFormat = ('<4s3f3ffHBBH')
+    # example: ('$$$$', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1000, 10, 10, 65535)
     # '<'         encoding = network = big endian
-    # '4s',       # preamble $$$$
-    # '3f',       # roll, pitch, yaw
-    # '3f',       # lat, lon, alt
-    # 'f',        # speed
-    # 'H',        # controllerState
-    # 'BB',       # battery(tricky), flags(GPS fix | GPS 3D fix | low bat. vol. | nu | nu | nu | solver1 | solver2
-    # 'H'))       # crc
+    # 0     '4s'        # preamble $$$$
+    # 1,2,3 '3f'        # roll, pitch, yaw
+    # 4,5,6 '3f'        # lat, lon, alt
+    # 7     'f'         # speed
+    # 8     'H'         # controllerState
+    # 9     'BB'        # battery(tricky), flags(GPS fix | GPS 3D fix | low bat. vol. | nu | nu | nu | solver1 | solver2
+    # 6     'H'         # crc
     
     def __init__(self, message):
         self.data = message
@@ -54,11 +55,10 @@ class DebugData:
     def toStringShort(self):
         tData = unpack(DebugData.messageFormat, self.data)
         return "(rpy: ({0:.2f},{1:.2f},{2:.2f}) state: {3:d} CRC: 0x{4:04X} )".format(
-            tData[1],
-            tData[2],
-            tData[3],
-            tData[9],
-            tData[12])
+            tData[1], tData[2], tData[3],# roll, pitch, yaw
+            tData[8], #controllerState
+            tData[11]) #CRC
+
 
     def __str__(self):
         if not self.isValid():
