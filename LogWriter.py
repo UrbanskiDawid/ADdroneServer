@@ -1,4 +1,3 @@
-from time import gmtime, strftime
 from datetime import datetime
 import threading
 
@@ -9,8 +8,9 @@ class LogWriter:
     open = False
 
     def __init__(self):
-        date = strftime("%d-%b-%Y-%H%M%S", gmtime())
+        date = datetime.now().strftime('%d-%b-%Y_%H%M%S')
         fileName = 'logs/ADDroneServer_' + date + '.log'
+        print("LogWriter: starting '"+fileName+"'");
         self.logfile = open(fileName, 'w')
         self.lock = threading.Lock()
         self.open = True
@@ -24,7 +24,7 @@ class LogWriter:
         if self.open == False:
           return
 
-        time = strftime("%H:%M:%S", gmtime())
+        time = datetime.now().strftime('%H:%M:%S')
         timeStamp = time + ":" + self.millis()
         self.lock.acquire()
         self.logfile.write(timeStamp + " " + description + "\n")
