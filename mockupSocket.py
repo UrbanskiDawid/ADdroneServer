@@ -48,8 +48,8 @@ class mockupSocket:
         else:
             self.dataIndex += 1
 
-        if ret_data:
-            print("Data index: " + str(self.dataIndex))
+#        if ret_data:
+#            print("Data index: " + str(self.dataIndex))
 
         time.sleep(sleepTime)
         return ret_data

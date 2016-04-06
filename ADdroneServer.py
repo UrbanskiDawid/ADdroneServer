@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from FakeUartSender import *
-from     UartSender import *
 from DroneControler import *
 from IpReceiver import *
 from Settings import *
@@ -10,6 +8,10 @@ import signal
 import sys
 import threading
 
+
+###########################################################################
+## LOAD SETTINGS
+###########################################################################
 SETTINGS = Settings()
 
 if (len(sys.argv) == 2):
@@ -17,30 +19,52 @@ if (len(sys.argv) == 2):
 
 server_name = ""  # "localhost"
 
-if SETTINGS.SIMULATOR == True:
+if SETTINGS.TCPSIMULATOR == True:
     print('Using port simulator')
 else:
     print('Using port number ' + str(SETTINGS.PORT))
 
 server_address = (server_name, SETTINGS.PORT)
 
-if SETTINGS.UARTSIMULATOR == True:
-    uartSender = FakeUartSender()
-else:
-    uartSender = UartSender(SETTINGS.UARTDEVICE, SETTINGS.UARTBAUDRATE)
+closeServerApp = False # Main loop control (True=stop this app)
 
-closeServerApp = False
-
+###########################################################################
+## INIT
+###########################################################################
 #TODO make log writer global
+
 logWriter = LogWriter()
-droneControler = DroneControler(uartSender, logWriter)
-receiver = IpReceiver(server_address, SETTINGS.SIMULATOR, True, droneControler, \
+
+##UART part
+def onReceiveUSART(msg):#DebugData
+  global receiver
+  receiver.send("debug:"+str(msg))
+#  print "onReceiveUSART: ' ",msg,"'"
+
+droneController=DroneController(onReceiveUSART, \
+                                SETTINGS.UARTDEVICE, \
+                                SETTINGS.UARTBAUDRATE, \
+                                SETTINGS.UARTSIMULATOR, \
+                                logWriter)
+##-------
+
+##IP part
+
+def onReveiveControlDataFromIP(cd):#ControlData
+  global droneController
+  droneController.setControlData(cd)
+#  print "onReveiveControlDataFromIP: ' ",cd.encode("hex"),"'"
+
+receiver = IpReceiver(onReveiveControlDataFromIP, \
+                      server_address, \
+                      SETTINGS.TCPSIMULATOR, \
+                      True, \
                       SETTINGS.BINDRETRYNUM, \
                       logWriter)
-droneControler.setIpConnection(receiver)
+##--
 
 heartBeatAlive=True
-def heartBeat():
+def heartBeat(): #probably move to IpReceiver
   global heartBeatAlive
   global receiver
   while heartBeatAlive:
@@ -49,27 +73,39 @@ def heartBeat():
       receiver.send("tick")
 
 t1 = threading.Thread(target=heartBeat)
+t1.name="heartBeat"
 t1.start()
 
-def end_handler(signal, frame):
+def endHandler(signal, frame):
   print('end handler called')
   global closeServerApp
+  global heartBeatAlive
   global receiver
-  receiver.keepConnectionFlag = False
+  global droneController
+  logWriter.noteEvent("main thread: endHandler");
+  heartBeatAlive = False
+  receiver.close()
+  droneController.close()
   closeServerApp = True
+  logWriter.close()
+  sys.exit(0)
 
-signal.signal(signal.SIGINT,  end_handler)
-signal.signal(signal.SIGTERM, end_handler)
+
+signal.signal(signal.SIGINT,  endHandler)
+signal.signal(signal.SIGTERM, endHandler)
+
+###########################################################################
+## MAIN LOOP
+###########################################################################
+logWriter.noteEvent("main thread: starting");
 
 while not closeServerApp:
     print('waiting for a connection')
     receiver.acceptConnection()
     while (receiver.keepConnection() and not closeServerApp):
         receiver.forwardIncomingPacket()
-    receiver.closeConnection()
-    print('connection closed')
+    receiver.close()
+    print('main thread: connection closed')
 
 print('exiting')
-heartBeatAlive = False
-t1.join()
-sys.exit(0)
+endHandler(None,None)

@@ -1,7 +1,7 @@
 import serial
 
 
-class UartSender:
+class UartController:
     connection = None
 
     def __init__(self,device,baundRate):
@@ -12,7 +12,7 @@ class UartSender:
         self.connection.bytesize = serial.EIGHTBITS #number of bits per bytes
         self.connection.parity = serial.PARITY_NONE #set parity check: no parity
         self.connection.stopbits = serial.STOPBITS_ONE #number of stop bits
-        print "UartSender constructed (", device, " at ",baundRate,")"
+        print "UartSender: constructed (", device, " at ",baundRate,")"
 
 # OTHER OPTIONS
 #        self.connection.xonxoff = False     #disable software flow control
@@ -33,6 +33,5 @@ class UartSender:
                 print('UART: read timeout or error')
         return data
 
-    #TODO: check if used
-    def closeConnection(self):
+    def close(self):
         self.connection.close()

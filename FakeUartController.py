@@ -1,11 +1,11 @@
 from DebugData import *
 
-class FakeUartSender:
+class FakeUartController:#Fake UartController class
     connection = None
     to_recv = ""
 
     def __init__(self):
-        print('FakeUartSender constructed')
+        print('FakeUartSender: constructed')
 
     def send(self, message):
         pass
@@ -17,6 +17,5 @@ class FakeUartSender:
         # self.to_recv = ""
         return data
 
-    # TODO check if this method is needed
-    def closeConnection(self):
-        print('Connection closed')
+    def close(self):
+        print('FakeUartSender: closed')

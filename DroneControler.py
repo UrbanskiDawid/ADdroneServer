@@ -2,119 +2,115 @@ from ControlData import *
 from DebugData import *
 from threading import Thread, Event, Lock
 import time
+from TimerThread import *
+from FakeUartController import *
+from     UartController import *
 
-class TimerThread(Thread): 
-    def __init__(self, handler, interval): 
-        Thread.__init__(self) 
-        self.stopped = Event()
-        self.handler = handler
-        self.interval = interval 
- 
-    def run(self):
-        while not self.stopped.wait(self.interval):
-            if self.stopped.isSet():
-                print "> Breaking thread"
-                break
-            self.handler() 
 
-    def stop(self):
-        self.stopped.set()
-
-class DroneControler:
-# TODO make all members private
-    usartConnection = None
-    ipConnection = None
+#this is DroneControler
+# is is used to handle USART part
+class DroneController:
+    __uartController = None
     __controlDataLock = None    
     __controlData = None
-    __debugData = None
-    sendingThread = None
-    receivingThread = None
-    logWriter = None
+    __debugData = None #NOT IN USE?!
+    __sendingThread = None
+    __receivingThread = None
+    __logWriter = None
     __nbReads = 0
-    maxTimeoutCounter = 20 # 20 * 0.05 = 1s
-    timeoutCounter = 0
-    preBuffer = ''
-    dataBuffer = ''
-    preambleFlag = False
+    __maxTimeoutCounter = 20 # 20 * 0.05 = 1s
+    __timeoutCounter = 0
+    __preBuffer = ''
+    __dataBuffer = ''
+    __preambleFlag = False
+    __onReceive = None #Event to call when read data from USART
 
-    def __init__(self, usartConnection, logWriter):
-        self.usartConnection = usartConnection
-        self.__controlDataLock = Lock()
-        self.logWriter = logWriter
+    #onReceiveEvent - call this function when new message is recived
+    #uartDev - None if usartFake=true
+    #usartBaundRate - None if usartFake=true
+    #usartFake - True -> UartController else FakeUartController
+    def __init__(self,onReceiveEvent, uartDev, usartBaundRate, usartFake, logWriter):
 
-    def setIpConnection(self, ipConnection):
-        self.ipConnection = ipConnection
-
-    def enable(self):
-        if self.sendingThread is None and self.receivingThread is None:
-            self.sendingThread = TimerThread(self.send, 0.05)        # 20 Hz
-            self.receivingThread = TimerThread(self.receive, 0.05)   # 20 Hz
-            self.sendingThread.start()
-            self.receivingThread.start()
+        if usartFake == True:
+            self.__uartController = FakeUartController()
         else:
-            print "ERROR: UART threads are allready not none"
-        
-    def disable(self):
-        self.sendingThread.stop()
-        self.receivingThread.stop()
-        self.sendingThread.join()
-        self.receivingThread.join()
-        self.sendingThread = None
-        self.receivingThread = None
+            self.__uartController = UartController(usartDev, usartBaundRate)
 
+        self.__controlDataLock = Lock()
+        self.__logWriter = logWriter
+        self.__onReceive = onReceiveEvent
+
+        self.__sendingThread = TimerThread("sendingThread",self.__sendThread, 0.05)        # 20 Hz
+        self.__sendingThread.start()
+
+        self.__receivingThread = TimerThread("receivingThread",self.__receiveThread, 0.05)   # 20 Hz
+        self.__receivingThread.start()
+        
+    def close(self):
+      print('DroneControler: close');
+      TimerThread.kill(self.__sendingThread)
+      TimerThread.kill(self.__receivingThread)
+      self.__uartController.close()
+
+    # Thread
+    # usartConnection
     # handler for sending thread
-    def send(self):
+    def __sendThread(self):
         data = self.getControlData()
         if data is not None:
-            self.usartConnection.send(data)
+            self.__uartController.send(data)
             log_msg = 'DroneController: Send: [' + data.encode("hex") + ']'
-            self.logWriter.noteEvent(log_msg)
-            print time.strftime("%H:%M:%S ") + log_msg
+            self.__logWriter.noteEvent(log_msg)
+            #print time.strftime("%H:%M:%S ") + log_msg
     
+    # Thread
+    # usartConnection
     # handler for receiving thread
-    def receive(self):
-        data = self.usartConnection.recv()
+    def __receiveThread(self):
+        data = self.__uartController.recv()
         dataLength = len(data)
         if dataLength == 0:
-            self.timeoutCounter += 1
-            if self.timeoutCounter >= self.maxTimeoutCounter:
+            self.__timeoutCounter += 1
+            if self.__timeoutCounter >= self.__maxTimeoutCounter:
                 # TODO set controller state in latched __debugData as NO_CONNECTION
                 print "USART receiving thread timeout ! - setting NO_CONNECTION"
-                self.timeoutCounter = 0
+                self.__timeoutCounter = 0
             else:
-                print "DroneController: WARNING: No data received from drone [" + str(self.timeoutCounter) + "] time(s)"
+                print "DroneController: WARNING: No data received from drone [" + str(self.__timeoutCounter) + "] time(s)"
             return
-        self.timeoutCounter = 0
+        self.__timeoutCounter = 0
 
-        log_msg = 'DroneController: Received: [' + data.encode("hex") + ']'
-        self.logWriter.noteEvent(log_msg)
-        print time.strftime("%H:%M:%S ") + log_msg
+        log_msg = 'DroneController: received: [0x' + data.encode("hex") + ']'
+        self.__logWriter.noteEvent(log_msg)
+#        print time.strftime("%H:%M:%S ") + log_msg
 
         i = 0
         while i < dataLength:  
-            if self.proceedReceiving(data[i]):
+            if self.__proceedReceiving(data[i]):
+              self.__onReceive(self.__debugData)
                     # valid DebugData received
-                    self.notifyIpConnection()
+#                    self.notifyIpConnection()
             # TODO difficult to detect wrong data. Impossible to print or log error message
             i += 1
 
-    def proceedReceiving(self, ch):
+    #part of __receiveThread
+    def __proceedReceiving(self, ch):
         if ch == '$':
-            self.preBuffer += ch
-            if len(self.preBuffer) == 4:
+            self.__preBuffer += ch
+            if len(self.__preBuffer) == 4:
                 # preamble received, clear all
-                self.preBuffer = ''
-                self.dataBuffer = ''
-                self.preambleFlag = True
+                self.__preBuffer = ''
+                self.__dataBuffer = ''
+                self.__preambleFlag = True
             return False
         result = False
-        if self.preambleFlag:
-            if len(self.preBuffer) > 0:
-                self.dataBuffer += self.preBuffer   
-            if len(self.dataBuffer) < 34:
-                self.dataBuffer += ch
-            if len(self.dataBuffer) == 34:
-                debug = DebugData("$$$$" + self.dataBuffer)
+        if self.__preambleFlag:
+            if len(self.__preBuffer) > 0:
+                self.__dataBuffer += self.__preBuffer   
+            if len(self.__dataBuffer) < 34:
+                self.__dataBuffer += ch
+            if len(self.__dataBuffer) == 34:
+                debug = DebugData("$$$$" + self.__dataBuffer)
                 if debug.isValid():
                     self.__debugData = debug
                     result = True
@@ -122,22 +118,16 @@ class DroneControler:
                 else:
                     log_msg = 'DroneController: INVALID DebugDataReceived: [' + str(debug) + ']'
 
-                self.logWriter.noteEvent(log_msg)
-                print time.strftime("%H:%M:%S ") + log_msg
+                self.__logWriter.noteEvent(log_msg)
+#                print time.strftime("%H:%M:%S ") + log_msg
 
-                self.preBuffer = ''
-                self.dataBuffer = ''
-                self.preambleFlag = False
+                self.__preBuffer = ''
+                self.__dataBuffer = ''
+                self.__preambleFlag = False
 
-        self.preBuffer = ''  
+        self.__preBuffer = ''  
         return result
-       
-    def notifyIpConnection(self):
-        if self.ipConnection is not None:
-            self.ipConnection.setDebugData(self.__debugData)
-        else:
-            print "Valid DebugData received but not forwarded - no IpConnection attached" 
-
+ 
     # latch newly received ControlData for sending thread
     def setControlData(self, value):
         controlData = ControlData(value)
@@ -145,7 +135,8 @@ class DroneControler:
             print time.strftime("%H:%M:%S ") + "DroneController: ERROR: wrong ControlData"
             return
 
-        print time.strftime("%H:%M:%S ") + 'DroneController: Send data set to: ' + str(controlData) + "[" + controlData.toStringHex() + "]"
+        log_message = 'DroneController: Send data set to: ' + str(controlData) + "[" + controlData.toStringHex() + "]"
+        self.__logWriter.noteEvent(log_message)
 
         self.__controlDataLock.acquire()
         self.__controlData = value
@@ -160,7 +151,7 @@ class DroneControler:
         self.__controlDataLock.release()
         if nbReads > 1:
             log_message = 'DroneController: Waring: same data read [' + str(nbReads) + '] times.'
-            print time.strftime("%H:%M:%S") + " " + log_message
-            self.logWriter.noteEvent(log_message)
+#            print time.strftime("%H:%M:%S") + " " + log_message
+            self.__logWriter.noteEvent(log_message)
         return data
 

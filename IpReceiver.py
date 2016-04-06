@@ -1,22 +1,27 @@
 import socket
 import sys
 import time
+from ControlData import *
 from mockupSocket import *
 
 class IpReceiver:
     sock = None
     connection = None
-    droneControler = None
     keepConnectionFlag = False
     client_address = None
     logWriter = None
+    onReciceEvent = None #function one argument
 
-    def __init__(self, server_address, use_simulator, simulatorLoopData, droneControler, retryNumBind, logWriter):
+    def __init__(self, reciveEvent, server_address, use_simulator, simulatorLoopData, retryNumBind, logWriter):
+        self.onReciceEvent=reciveEvent
         self.logWriter = logWriter
         if use_simulator:
             self.sock = mockupSocket(simulatorLoopData)
+            print('IpReceiver: using port simulator')
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print('IpReceiver: Using ' + str(server_address[1]))
+
         tryNum=retryNumBind
         while True:
           try:
@@ -30,7 +35,6 @@ class IpReceiver:
               #end of method execution - exception raised
             time.sleep(5)
         self.sock.listen(1)
-        self.droneControler = droneControler
 
     def acceptConnection(self):
         self.keepConnectionFlag = False
@@ -39,7 +43,6 @@ class IpReceiver:
         print 'client connected:', self.client_address
         self.logWriter.noteEvent('Client connected: ' + \
                                  str(self.client_address))
-        self.droneControler.enable()
 
     def send(self, data):
         try:
@@ -53,7 +56,7 @@ class IpReceiver:
         BUFFER_SIZE = 512
         try:
           data = self.connection.recv(BUFFER_SIZE)
-          self.logWriter.noteEvent('Received: ' + str(data))
+          self.logWriter.noteEvent('IpReceiver: received: [0x' + str(data.encode("hex")+']'))
         except:
           data = None
           print 'forwardIncomingPacket: IP receive ERROR/TIMEOUT'
@@ -78,7 +81,14 @@ class IpReceiver:
             self.msg+=str(data[i])
             i+=1
             if len(self.msg) == 38:
-              self.droneControler.setControlData(self.msg)
+              newControlData = ControlData(self.msg)
+              if newControlData.isValid():
+                log_msg = 'IpReceiver: valid ControlData received: [' + str(newControlData) + ']'
+                self.onReciceEvent(self.msg)
+              else:
+                log_msg = 'DroneController: INVALID ControlData received: [' + str(self.msg) + ']'
+              self.logWriter.noteEvent(log_msg)
+#             self.droneControler.setControlData(self.msg)
               self.msg=[]
 
     def setDebugData(self, debugData):
@@ -86,10 +96,10 @@ class IpReceiver:
         #msgToSendViaIp = debugData.msg
         # TODO implement sending DebugData via IP connection
 
-    def closeConnection(self):
+    def close(self):
         self.keepConnectionFlag = False
         self.sock.close()
-        self.droneControler.disable()
+#        self.droneControler.disable()
 
     def keepConnection(self):
         return self.keepConnectionFlag

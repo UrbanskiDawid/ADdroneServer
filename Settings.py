@@ -6,7 +6,7 @@ class Settings:
     #SERVER section
     PORT = 5555
     BINDRETRYNUM = 3
-    SIMULATOR = False
+    TCPSIMULATOR = False
 
     #UART section
     UARTDEVICE = ""
@@ -21,7 +21,7 @@ class Settings:
             self.PORT = config.getint('SERVER', 'port')
             self.BINDRETRYNUM = config.getint('SERVER', 'bindRetryNum')
             if config.has_option('SERVER', 'simulator'):
-                self.SIMULATOR = config.getboolean('SERVER', 'simulator')
+                self.TCPSIMULATOR = config.getboolean('SERVER', 'simulator')
 
         if config.has_section('UART'):
             self.UARTDEVICE = config.get('UART', 'device')
