@@ -13,8 +13,8 @@ class IpController:
     logWriter = None
     onReciceEvent = None #function one argument
 
-    def __init__(self, reciveEvent, server_address, use_simulator, simulatorLoopData, retryNumBind, logWriter):
-        self.onReciceEvent=reciveEvent
+    def __init__(self, server_address, use_simulator, simulatorLoopData, retryNumBind, logWriter):
+        self.onReciceEvent=self.defaultOnReciveEvent
         self.logWriter = logWriter
         if use_simulator:
             self.sock = mockupSocket(simulatorLoopData)
@@ -40,6 +40,12 @@ class IpController:
         self.heartBeatThread=TimerThread("heartBeat",self.heartBeat,2)
         self.heartBeatThread.start()
 
+    def setOnReceiveEvent(self,reciveEvent):
+        self.onReciceEvent=reciveEvent
+
+    def defaultOnReciveEvent(self,dd):#DebugData
+        self.logWriter.noteEvent('IpController: defaultOnReciveEvent "'+str(dd)+'"');
+
     def heartBeat(self):
         if self.keepConnection():
           self.send("tick")
@@ -49,7 +55,7 @@ class IpController:
         self.connection, self.client_address = self.sock.accept()
         self.keepConnectionFlag = True
         print 'IpController: client connected:', self.client_address
-        self.logWriter.noteEvent('Client connected: ' + \
+        self.logWriter.noteEvent('IpController: Client connected: ' + \
                                  str(self.client_address))
 
     def send(self, data):
@@ -92,7 +98,7 @@ class IpController:
               newControlData = ControlData(self.msg)
               if newControlData.isValid():
                 log_msg = 'IpController: valid ControlData received: [' + str(newControlData) + ']'
-                self.onReciceEvent(self.msg)
+                self.onReciceEvent(newControlData)#self.msg)
               else:
                 log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
               self.logWriter.noteEvent(log_msg)

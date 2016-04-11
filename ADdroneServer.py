@@ -7,7 +7,7 @@ from time import sleep
 import signal
 import sys
 import threading
-
+from traceback import format_exception
 
 ###########################################################################
 ## LOAD SETTINGS
@@ -36,32 +36,23 @@ closeServerApp = False # Main loop control (True=stop this app)
 logWriter = LogWriter()
 
 ##UART part
-def onReceiveUSART(msg):#DebugData
-  global receiver
-  receiver.send("debug:"+str(msg))
-#  print "onReceiveUSART: ' ",msg,"'"
-
-droneController=DroneController(onReceiveUSART, \
-                                SETTINGS.UARTDEVICE, \
+droneController=DroneController(SETTINGS.UARTDEVICE, \
                                 SETTINGS.UARTBAUDRATE, \
                                 SETTINGS.UARTSIMULATOR, \
                                 logWriter)
 ##-------
 
 ##IP part
-def onReveiveControlDataFromIP(cd):#ControlData
-  global droneController
-  droneController.setControlData(cd)
-#  print "onReveiveControlDataFromIP: ' ",cd.encode("hex"),"'"
-
-receiver = IpController(onReveiveControlDataFromIP, \
-                        server_address, \
+receiver = IpController(server_address, \
                         SETTINGS.TCPSIMULATOR, \
                         True, \
                         SETTINGS.BINDRETRYNUM, \
                         logWriter)
 ##--
 
+###########################################################################
+## EVENTS
+###########################################################################
 def endHandler(signal, frame):
   print('MainThread: end handler called')
   global closeServerApp
@@ -74,9 +65,41 @@ def endHandler(signal, frame):
   logWriter.close()
   sys.exit(0)
 
-
 signal.signal(signal.SIGINT,  endHandler)
 signal.signal(signal.SIGTERM, endHandler)
+
+def topExceptHook(type, value, traceback):
+  global logWriter
+  exceptMsg=format_exception(type, value, traceback)
+  try:
+    logWriter.noteEvent("MainThread: unhandled Exception ",str(exceptMsg))
+  except:
+    pass #can't handle logWriter exceptions here
+
+  print "MainThread: unhandled Exception "
+  for line in format_exception(type, value, traceback):
+    print line,
+
+  endHandler(None,None)
+
+sys.excepthook = topExceptHook
+
+
+def onReceiveUSART(msg):#DebugData
+  global receiver
+  receiver.send("debug:"+str(msg))
+#  print "MainThread: onReceiveUSART: ' ",msg,"'"
+
+droneController.setOnReceiveEvent(onReceiveUSART)
+
+
+def onReveiveControlDataFromIP(cd):#ControlData
+  global droneController
+  droneController.setControlData(cd.getData())
+#  print "MainThread: onReveiveControlDataFromIP: ' ",str(cd),"'"
+
+receiver.setOnReceiveEvent(onReveiveControlDataFromIP)
+
 
 ###########################################################################
 ## MAIN LOOP
@@ -88,7 +111,6 @@ while not closeServerApp:
     receiver.acceptConnection()
     while (receiver.keepConnection() and not closeServerApp):
         receiver.forwardIncomingPacket()
-    receiver.close()
     print('MainThread: connection closed')
 
 endHandler(None,None)

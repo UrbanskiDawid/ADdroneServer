@@ -25,11 +25,10 @@ class DroneController:
     __preambleFlag = False
     __onReceive = None #Event to call when read data from USART
 
-    #onReceiveEvent - call this function when new message is recived
     #uartDev - None if usartFake=true
     #usartBaundRate - None if usartFake=true
     #usartFake - True -> UartController else FakeUartController
-    def __init__(self,onReceiveEvent, uartDev, usartBaundRate, usartFake, logWriter):
+    def __init__(self,uartDev, usartBaundRate, usartFake, logWriter):
 
         if usartFake == True:
             self.__uartController = FakeUartController()
@@ -38,13 +37,21 @@ class DroneController:
 
         self.__controlDataLock = Lock()
         self.__logWriter = logWriter
-        self.__onReceive = onReceiveEvent
+        self.__onReceive = self.__defaultOnReceiveEvent
 
         self.__sendingThread = TimerThread("sendingThread",self.__sendThread, 0.05)        # 20 Hz
         self.__sendingThread.start()
 
         self.__receivingThread = TimerThread("receivingThread",self.__receiveThread, 0.05)   # 20 Hz
         self.__receivingThread.start()
+
+    #onReceiveEvent - call this function when new message is recived
+    def setOnReceiveEvent(self,onReceiveEvent):
+      self.__onReceive = onReceiveEvent
+
+    def __defaultOnReceiveEvent(self,cd):#ControlData
+      log_msg = 'DroneController: __defaultOnReceiveEvent: [' + str(cd) + ']'
+      self.__logWriter.noteEvent(log_msg)
         
     def close(self):
       print('DroneControler: close');

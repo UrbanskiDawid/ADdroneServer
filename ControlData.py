@@ -2,9 +2,7 @@ from struct import *
 import sys
 
 class ControlData:
-    data = None
-    valid = None
-    
+
     # message struct
     messageFormat='<'\
                   '4s'\
@@ -75,6 +73,9 @@ class ControlData:
         if not self.isValid():
             return "<ControlData> wrong data"
         return self.toStringShort()
+
+    def getData(self):#return string
+      return self.data
         
     @staticmethod
     def StopCommand():
