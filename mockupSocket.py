@@ -6,7 +6,7 @@ class mockupSocket:
     data = []
 
     def __init__(self, repeat):
-        print("mockupSocket constructed")
+        print("MockupSocket: constructed")
         fname = "tools/clientSimulator/sequences/start"
         with open(fname) as f:
             content = f.readlines()
@@ -14,9 +14,9 @@ class mockupSocket:
         for line in content:
             datastring = self.HexDelimitedStringToDataString(line.rstrip())
             self.data.append(datastring)
-        print("ip data loaded from file :", fname)
+        print("MockupSocket: ip data loaded from file :"+fname )
         self.__repeat = repeat
-        print("repeat sequence = " + str(self.__repeat))
+        print("MockupSocket: repeat sequence = " + str(self.__repeat))
 
     def HexDelimitedStringToDataString(self, line):
         hexstr_list = line.split(",")
