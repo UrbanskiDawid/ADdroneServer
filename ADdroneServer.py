@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from DroneControler import *
-from IpReceiver import *
+from IpController import *
 from Settings import *
 from LogWriter import *
 from time import sleep
@@ -20,9 +20,9 @@ if (len(sys.argv) == 2):
 server_name = ""  # "localhost"
 
 if SETTINGS.TCPSIMULATOR == True:
-    print('Using port simulator')
+    print('MainThread: Using port simulator')
 else:
-    print('Using port number ' + str(SETTINGS.PORT))
+    print('MainThread: Using port number ' + str(SETTINGS.PORT))
 
 server_address = (server_name, SETTINGS.PORT)
 
@@ -49,41 +49,25 @@ droneController=DroneController(onReceiveUSART, \
 ##-------
 
 ##IP part
-
 def onReveiveControlDataFromIP(cd):#ControlData
   global droneController
   droneController.setControlData(cd)
 #  print "onReveiveControlDataFromIP: ' ",cd.encode("hex"),"'"
 
-receiver = IpReceiver(onReveiveControlDataFromIP, \
-                      server_address, \
-                      SETTINGS.TCPSIMULATOR, \
-                      True, \
-                      SETTINGS.BINDRETRYNUM, \
-                      logWriter)
+receiver = IpController(onReveiveControlDataFromIP, \
+                        server_address, \
+                        SETTINGS.TCPSIMULATOR, \
+                        True, \
+                        SETTINGS.BINDRETRYNUM, \
+                        logWriter)
 ##--
 
-heartBeatAlive=True
-def heartBeat(): #probably move to IpReceiver
-  global heartBeatAlive
-  global receiver
-  while heartBeatAlive:
-    sleep(2)
-    if receiver.keepConnection():
-      receiver.send("tick")
-
-t1 = threading.Thread(target=heartBeat)
-t1.name="heartBeat"
-t1.start()
-
 def endHandler(signal, frame):
-  print('end handler called')
+  print('MainThread: end handler called')
   global closeServerApp
-  global heartBeatAlive
   global receiver
   global droneController
-  logWriter.noteEvent("main thread: endHandler");
-  heartBeatAlive = False
+  logWriter.noteEvent("MainThread: endHandler");
   receiver.close()
   droneController.close()
   closeServerApp = True
@@ -97,15 +81,14 @@ signal.signal(signal.SIGTERM, endHandler)
 ###########################################################################
 ## MAIN LOOP
 ###########################################################################
-logWriter.noteEvent("main thread: starting");
+logWriter.noteEvent("MainThread: starting");
 
 while not closeServerApp:
-    print('waiting for a connection')
+    print('MainThread: waiting for a connection')
     receiver.acceptConnection()
     while (receiver.keepConnection() and not closeServerApp):
         receiver.forwardIncomingPacket()
     receiver.close()
-    print('main thread: connection closed')
+    print('MainThread: connection closed')
 
-print('exiting')
 endHandler(None,None)

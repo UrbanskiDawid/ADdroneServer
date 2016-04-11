@@ -3,8 +3,9 @@ import sys
 import time
 from ControlData import *
 from mockupSocket import *
+from TimerThread import *
 
-class IpReceiver:
+class IpController:
     sock = None
     connection = None
     keepConnectionFlag = False
@@ -17,10 +18,10 @@ class IpReceiver:
         self.logWriter = logWriter
         if use_simulator:
             self.sock = mockupSocket(simulatorLoopData)
-            print('IpReceiver: using port simulator')
+            print('IpController: using port simulator')
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print('IpReceiver: Using ' + str(server_address[1]))
+            print('IpController: Using ' + str(server_address[1]))
 
         tryNum=retryNumBind
         while True:
@@ -28,19 +29,26 @@ class IpReceiver:
             self.sock.bind(server_address)
             break
           except Exception as e:
-            sys.stderr.write('IpReceiver: failed ({0}/{1}): {2}\n'.format(tryNum,retryNumBind,e))
+            sys.stderr.write('IpController: failed ({0}/{1}): {2}\n'.format(tryNum,retryNumBind,e))
             tryNum-=1
             if tryNum<1:
-              raise Exception("IpReceiver can't bind socket!")
+              raise Exception("IpController: can't bind socket!")
               #end of method execution - exception raised
             time.sleep(5)
         self.sock.listen(1)
+
+        self.heartBeatThread=TimerThread("heartBeat",self.heartBeat,2)
+        self.heartBeatThread.start()
+
+    def heartBeat(self):
+        if self.keepConnection():
+          self.send("tick")
 
     def acceptConnection(self):
         self.keepConnectionFlag = False
         self.connection, self.client_address = self.sock.accept()
         self.keepConnectionFlag = True
-        print 'client connected:', self.client_address
+        print 'IpController: client connected:', self.client_address
         self.logWriter.noteEvent('Client connected: ' + \
                                  str(self.client_address))
 
@@ -56,13 +64,13 @@ class IpReceiver:
         BUFFER_SIZE = 512
         try:
           data = self.connection.recv(BUFFER_SIZE)
-          self.logWriter.noteEvent('IpReceiver: received: [0x' + str(data.encode("hex")+']'))
+          self.logWriter.noteEvent('IpController: received: [0x' + str(data.encode("hex")+']'))
         except:
           data = None
-          print 'forwardIncomingPacket: IP receive ERROR/TIMEOUT'
+          print 'IpController: forwardIncomingPacket: IP receive ERROR/TIMEOUT'
 
         if not data:
-            print 'client disconnected:', self.client_address
+            print 'IpController: client disconnected:', self.client_address
             self.keepConnectionFlag = False
             return
 
@@ -83,10 +91,10 @@ class IpReceiver:
             if len(self.msg) == 38:
               newControlData = ControlData(self.msg)
               if newControlData.isValid():
-                log_msg = 'IpReceiver: valid ControlData received: [' + str(newControlData) + ']'
+                log_msg = 'IpController: valid ControlData received: [' + str(newControlData) + ']'
                 self.onReciceEvent(self.msg)
               else:
-                log_msg = 'DroneController: INVALID ControlData received: [' + str(self.msg) + ']'
+                log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
               self.logWriter.noteEvent(log_msg)
 #             self.droneControler.setControlData(self.msg)
               self.msg=[]
@@ -99,7 +107,7 @@ class IpReceiver:
     def close(self):
         self.keepConnectionFlag = False
         self.sock.close()
-#        self.droneControler.disable()
+        TimerThread.kill(self.heartBeatThread)
 
     def keepConnection(self):
         return self.keepConnectionFlag
