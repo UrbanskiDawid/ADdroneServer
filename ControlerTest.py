@@ -1,7 +1,6 @@
-from DroneControler import DroneControler
+from DroneControler import DroneController
 from ControlData import *
 from UartSender import *
-from FakeUartSender import *
 import time
 from LogWriter import *
 import struct
@@ -14,13 +13,13 @@ def onReceiveUsart(debugData):
 
 
 logWriter = LogWriter()
-droneControler = DroneControler(RB3, 115200, False, logWriter)
+droneControler = DroneController(RB2, 115200, False, logWriter)
 
 droneControler.setOnReceiveEvent(onReceiveUsart)
 
 droneControler.setControlData(ControlData.SomeValidControlCommand().data)
 
-time.sleep(3)
+time.sleep(10)
 
 droneControler.setControlData(ControlData.StopCommand().data)
 

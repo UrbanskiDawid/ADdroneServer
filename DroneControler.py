@@ -33,7 +33,7 @@ class DroneController:
         if usartFake == True:
             self.__uartController = FakeUartController()
         else:
-            self.__uartController = UartController(usartDev, usartBaundRate)
+            self.__uartController = UartController(uartDev, usartBaundRate)
 
         self.__controlDataLock = Lock()
         self.__logWriter = logWriter

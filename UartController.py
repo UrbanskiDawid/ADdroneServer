@@ -23,7 +23,7 @@ class UartController:
         self.connection.write(message)
 
     def recv(self):
-        data = None
+        data = ''
         nbBytesWaitingInInputBuffer = self.connection.inWaiting()
         print "to read: ", nbBytesWaitingInInputBuffer
         if nbBytesWaitingInInputBuffer > 0:
