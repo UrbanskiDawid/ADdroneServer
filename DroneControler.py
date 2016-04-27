@@ -55,8 +55,7 @@ class DroneController:
       self.onReceive = onReceiveEvent
 
     def defaultOnReceiveEvent(self, debugData):
-      log_msg = 'DroneController: defaultOnReceiveEvent: [' + str(debugData) + ']'
-      self.logWriter.noteEvent(log_msg)
+      self.logWriter.noteEvent('DroneController: defaultOnReceiveEvent')
         
     def close(self):
       print('DroneControler: close');
@@ -70,9 +69,9 @@ class DroneController:
     def sendThread(self):
         data = self.getControlData()
         if data is not None:
-            self.uartController.send(data)
             log_msg = 'DroneController: Send ControlData: [0x' + data.encode("hex") + ']'
             self.logWriter.noteEvent(log_msg)
+            self.uartController.send(data)
             print 'Send: ' + str(data)
                 
     # Thread
@@ -93,10 +92,10 @@ class DroneController:
         i = 0
         while i < dataLength:  
             if self.proceedReceiving(data[i]):
-                self.onReceive(self.debugData)
                 log_msg = 'DroneController: Received DebugData: [0x' + self.debugData.data.encode("hex") + ']'
                 self.logWriter.noteEvent(log_msg)
-                print 'Received: ' + str(data)
+                self.onReceive(self.debugData)
+                print 'Received: ' + str(self.debugData)
             i += 1
 
     # proceed one char received via UART
