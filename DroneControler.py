@@ -130,7 +130,9 @@ class DroneController:
     # latch newly received ControlData for sending thread
     def setControlData(self, controlData):
         if not controlData.isValid():
-            print time.strftime('%H:%M:%S ') + 'DroneController: ERROR: wrong ControlData'
+            log_message = 'DroneController: ERROR: wrong ControlData set'
+            self.logWriter.noteEvent(log_message)
+            print log_message
             return
 
         log_message = 'DroneController: ControlData set to: [' + str(controlData) + ']'
@@ -148,7 +150,7 @@ class DroneController:
         nbReads = self.nbReads
         self.controlDataLock.release()
         if nbReads > 1:
-            log_message = 'DroneController: same ControlData read [' + str(nbReads) + '] times.'
+            log_message = 'DroneController: WARNING same ControlData read [' + str(nbReads) + '] times.'
             self.logWriter.noteEvent(log_message)
         return data
 
