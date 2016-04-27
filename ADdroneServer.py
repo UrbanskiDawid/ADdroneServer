@@ -93,9 +93,9 @@ def onReceiveUSART(msg):#DebugData
 droneController.setOnReceiveEvent(onReceiveUSART)
 
 
-def onReveiveControlDataFromIP(cd):#ControlData
+def onReveiveControlDataFromIP(controlData):
   global droneController
-  droneController.setControlData(cd.getData())
+  droneController.setControlData(controlData)
 #  print "MainThread: onReveiveControlDataFromIP: ' ",str(cd),"'"
 
 receiver.setOnReceiveEvent(onReveiveControlDataFromIP)
