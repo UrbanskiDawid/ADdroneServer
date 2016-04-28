@@ -20,12 +20,11 @@ class UartController:
 #        self.connection.dsrdtr = False       #disable hardware (DSR/DTR) flow control
 
     def send(self, message):
-        self.connection.write(message.data)
+        self.connection.write(message)
 
     def recv(self):
         data = ''
         nbBytesWaitingInInputBuffer = self.connection.inWaiting()
-        print "to read: ", nbBytesWaitingInInputBuffer
         if nbBytesWaitingInInputBuffer > 0:
             try:
                 data = self.connection.read(nbBytesWaitingInInputBuffer)

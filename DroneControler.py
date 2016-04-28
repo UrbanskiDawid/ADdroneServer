@@ -67,12 +67,12 @@ class DroneController:
     # uartConnection
     # handler for sending thread
     def sendThread(self):
-        data = self.getControlData()
-        if data is not None:
-            log_msg = 'DroneController: Send ControlData: [0x' + data.data.encode("hex") + ']'
+        controlData = self.getControlData()
+        if controlData is not None:
+            log_msg = 'DroneController: Send ControlData: [0x' + controlData.data.encode("hex") + ']'
             self.logWriter.noteEvent(log_msg)
-            self.uartController.send(data)
-            print 'Send: ' + str(data)
+            self.uartController.send(controlData.data)
+            print 'Send: ' + str(controlData)
                 
     # Thread
     # uartConnection
