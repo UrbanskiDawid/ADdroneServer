@@ -102,13 +102,7 @@ class IpController:
               else:
                 log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
               self.logWriter.noteEvent(log_msg)
-#             self.droneControler.setControlData(self.msg)
               self.msg=[]
-
-    def setDebugData(self, debugData):
-        pass
-        #msgToSendViaIp = debugData.msg
-        # TODO implement sending DebugData via IP connection
 
     def close(self):
         self.keepConnectionFlag = False

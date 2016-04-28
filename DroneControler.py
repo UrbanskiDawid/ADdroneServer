@@ -84,6 +84,7 @@ class DroneController:
             self.timeoutCounter += 1
             if self.timeoutCounter >= self.maxTimeoutCounter:
                 # TODO set controller state in latched debugData as NO_CONNECTION
+                # TODO call onReceiveEvent for transmi error via IP
                 print 'DroneController: receiving thread timeout !'
                 self.timeoutCounter = 0
             return
