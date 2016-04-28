@@ -20,7 +20,7 @@ class UartController:
 #        self.connection.dsrdtr = False       #disable hardware (DSR/DTR) flow control
 
     def send(self, message):
-        self.connection.write(message)
+        self.connection.write(message.data)
 
     def recv(self):
         data = ''

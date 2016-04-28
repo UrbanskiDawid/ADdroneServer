@@ -69,7 +69,7 @@ class DroneController:
     def sendThread(self):
         data = self.getControlData()
         if data is not None:
-            log_msg = 'DroneController: Send ControlData: [0x' + data.encode("hex") + ']'
+            log_msg = 'DroneController: Send ControlData: [0x' + data.data.encode("hex") + ']'
             self.logWriter.noteEvent(log_msg)
             self.uartController.send(data)
             print 'Send: ' + str(data)
@@ -140,7 +140,7 @@ class DroneController:
         self.logWriter.noteEvent(log_message)
 
         self.controlDataLock.acquire()
-        self.controlData = value
+        self.controlData = controlData
         self.nbReads = 0
         self.controlDataLock.release()
 
