@@ -4,6 +4,7 @@ import time
 from ControlData import *
 from mockupSocket import *
 from TimerThread import *
+from StreamProcessor import *
 
 class IpController:
     sock = None
@@ -12,6 +13,8 @@ class IpController:
     client_address = None
     logWriter = None
     onReciceEvent = None #function one argument
+
+    streamProcessor = None
 
     def __init__(self, server_address, use_simulator, simulatorLoopData, retryNumBind, logWriter):
         self.onReciceEvent=self.defaultOnReciveEvent
@@ -22,6 +25,8 @@ class IpController:
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print('IpController: Using ' + str(server_address[1]))
+
+        self.streamProcessor = StreamProcessor(self.onReceiveControl, self.onReceiveSignal)
 
         tryNum=retryNumBind
         while True:
@@ -103,6 +108,40 @@ class IpController:
                 log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
               self.logWriter.noteEvent(log_msg)
               self.msg=[]
+
+    # event called by StreamProcessor - on control preamble
+    def onReceiveControl(self, controlDataMsg):
+        newControlData = ControlData(controlDataMsg)
+        if newControlData.isValid():
+            log_msg = 'IpController: valid ControlData received: [' + str(newControlData) + ']'
+            # forward data to DronController
+            self.onReciceEvent(newControlData)
+        else:
+            log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
+        self.logWriter.noteEvent(log_msg)
+
+    # event called by StreamProcessor - on signal preamble
+    def onReceiveSignal(self, signalPongMsg):
+        # immadetely response with ping
+        print 'Signal received [' + str(signalPongMsg.encode("hex")) + ']'
+        self.send(signalPongMsg)
+        self.logWriter.noteEvent('IpController: Ping received: [' + str(signalPongMsg.encode("hex")) + ']')
+
+    def forwardIncomingPacket2(self):
+        BUFFER_SIZE = 512
+        try:
+          data = self.connection.recv(BUFFER_SIZE)
+          self.logWriter.noteEvent('IpController: received: [0x' + str(data.encode("hex")+']'))
+        except:
+          data = None
+          print 'IpController: forwardIncomingPacket: IP receive ERROR/TIMEOUT'
+
+        if not data:
+            print 'IpController: client disconnected:', self.client_address
+            self.keepConnectionFlag = False
+            return
+
+        self.streamProcessor.processStream(data)
 
     def close(self):
         self.keepConnectionFlag = False

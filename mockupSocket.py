@@ -7,7 +7,7 @@ class mockupSocket:
 
     def __init__(self, repeat):
         print("MockupSocket: constructed")
-        fname = "tools/clientSimulator/sequences/start"
+        fname = "tools/clientSimulator/sequences/startWithPing"
         with open(fname) as f:
             content = f.readlines()
             f.close()

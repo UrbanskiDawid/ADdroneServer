@@ -9,12 +9,12 @@ class StreamProcessor:
     def signalPreamble():
         return '%%%%'
 
-    def getMaxBufferSize(preambleId):
-        if (preambleId == controlPreamble()):
+    def getMaxBufferSize(self, preambleId):
+        if (preambleId == self.controlPreamble()[0]):
             return 34
-        else if (preambleId == signalPreamble()):
-            return 34
-        else
+        elif (preambleId == self.signalPreamble()[0]):
+            return 4
+        else:
             print 'Bad preamble Id'
             raise 
 
@@ -36,24 +36,24 @@ class StreamProcessor:
         self.onControlReceive = onControlReceive
         self.onSignalReceive = onSignalReceive
 
-    def isPreambel(self, pream):
+    def isPreamble(self, pream):
         a = (pream == self.controlPreamble())
         b = (pream == self.signalPreamble())
-        return a || b
+        return a or b
 
     def activatePreamble(self, preamValue):
         self.isPreambleActive = True
         self.activePreambleId = preamValue
 
     def putData(self, byte):
-        dataBuffer += byte
-        if (len(dataBuffer) == getMaxBufferSize(activePreambleId)):
+        self.dataBuffer += str(byte)
+        if (len(self.dataBuffer) == self.getMaxBufferSize(self.activePreambleId)):
             # full packet according to preamble received
             self.onReceive();
             # cleanup for next reception
-            isPreambleActive = False
-            activePrembleId = None
-            dataBuffer = ''
+            self.isPreambleActive = False
+            self.activePrembleId = None
+            self.dataBuffer = ''
 
     # main method - called every data in stream is received
     def processStream(self, data):
@@ -61,15 +61,17 @@ class StreamProcessor:
         dataSize = len(data)
         while (i < dataSize):
             # check for preamble
-            if (i + 4 > dataSize && self.isPreamble(data[i:4]):
+            if (i + 4 < dataSize and self.isPreamble(data[i : i + 4])):
                 self.activatePreamble(data[i])
+                i += 4
+                continue
             # else try to put byte into buffer if preable is received
-            else if (self.isPreambleActive):
+            elif (self.isPreambleActive):
                 self.putData(data[i])
             i += 1
 
     def onReceive(self):
-        if (self.activePreambleId == self.controlPreamble()):
-            self.onControlReceive(self.controlPreamble() + dataBuffer)
-        else if (self.activePreambleId == self.signalPreamble()):
-            self.onSignalReceive(self.signalPreamble() + dataBuffer)
+        if (self.activePreambleId == self.controlPreamble()[0]):
+            self.onControlReceive(self.controlPreamble() + self.dataBuffer)
+        elif (self.activePreambleId == self.signalPreamble()[0]):
+            self.onSignalReceive(self.signalPreamble() + self.dataBuffer)
