@@ -113,9 +113,9 @@ class IpController:
     def onReceiveControl(self, controlDataMsg):
         newControlData = ControlData(controlDataMsg)
         if newControlData.isValid():
-            log_msg = 'IpController: valid ControlData received: [' + str(newControlData) + ']'
             # forward data to DronController
             self.onReciceEvent(newControlData)
+            log_msg = 'IpController: valid ControlData received: [' + str(newControlData) + ']'
         else:
             log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
         self.logWriter.noteEvent(log_msg)
@@ -123,9 +123,10 @@ class IpController:
     # event called by StreamProcessor - on signal preamble
     def onReceiveSignal(self, signalPongMsg):
         # immadetely response with ping
-        print 'Signal received [' + str(signalPongMsg.encode("hex")) + ']'
         self.send(signalPongMsg)
-        self.logWriter.noteEvent('IpController: Ping received: [' + str(signalPongMsg.encode("hex")) + ']')
+        log_msg = 'IpController: Signal received [' + str(signalPongMsg.encode("hex")) + ']'
+        self.logWriter.noteEvent(log_msg)
+        print log_msg
 
     def forwardIncomingPacket2(self):
         BUFFER_SIZE = 512
