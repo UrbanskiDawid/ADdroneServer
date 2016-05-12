@@ -43,7 +43,7 @@ droneController=DroneController(SETTINGS.UARTDEVICE, \
 ##-------
 
 ##IP part
-receiver = IpController(server_address, \
+ipController = IpController(server_address, \
                         SETTINGS.TCPSIMULATOR, \
                         True, \
                         SETTINGS.BINDRETRYNUM, \
@@ -56,10 +56,10 @@ receiver = IpController(server_address, \
 def endHandler(signal, frame):
   print('MainThread: end handler called')
   global closeServerApp
-  global receiver
+  global ipController
   global droneController
   logWriter.noteEvent("MainThread: endHandler");
-  receiver.close()
+  ipController.close()
   droneController.close()
   closeServerApp = True
   logWriter.close()
@@ -85,10 +85,10 @@ def topExceptHook(type, value, traceback):
 sys.excepthook = topExceptHook
 
 
-def onReceiveUSART(msg):#DebugData
-  global receiver
-  receiver.send("debug:"+str(msg))
-#  print "MainThread: onReceiveUSART: ' ",msg,"'"
+def onReceiveUSART(debugData):#DebugData
+  global ipController
+  ipController.send(debugData)
+#  print "MainThread: onReceiveUSART: ' ",debugData,"'"
 
 droneController.setOnReceiveEvent(onReceiveUSART)
 
@@ -96,9 +96,9 @@ droneController.setOnReceiveEvent(onReceiveUSART)
 def onReveiveControlDataFromIP(controlData):
   global droneController
   droneController.setControlData(controlData)
-#  print "MainThread: onReveiveControlDataFromIP: ' ",str(cd),"'"
+#  print "MainThread: onReveiveControlDataFromIP: ' ",str(controlData),"'"
 
-receiver.setOnReceiveEvent(onReveiveControlDataFromIP)
+ipController.setOnReceiveEvent(onReveiveControlDataFromIP)
 
 
 ###########################################################################
@@ -108,9 +108,9 @@ logWriter.noteEvent("MainThread: starting");
 
 while not closeServerApp:
     print('MainThread: waiting for a connection')
-    receiver.acceptConnection()
-    while (receiver.keepConnection() and not closeServerApp):
-        receiver.forwardIncomingPacket()
+    ipController.acceptConnection()
+    while (ipController.keepConnection() and not closeServerApp):
+        ipController.forwardIncomingPacket()
     print('MainThread: connection closed')
 
 endHandler(None,None)

@@ -72,7 +72,6 @@ class DroneController:
             log_msg = 'DroneController: Send ControlData: [0x' + controlData.data.encode("hex") + ']'
             self.logWriter.noteEvent(log_msg)
             self.uartController.send(controlData.data)
-            print 'Send: ' + str(controlData)
                 
     # Thread
     # uartConnection
@@ -96,7 +95,6 @@ class DroneController:
                 log_msg = 'DroneController: Received DebugData: [0x' + self.debugData.data.encode("hex") + ']'
                 self.logWriter.noteEvent(log_msg)
                 self.onReceive(self.debugData)
-                print 'Received: ' + str(self.debugData)
             i += 1
 
     # proceed one char received via UART
