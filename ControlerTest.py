@@ -9,7 +9,7 @@ RB2 = "/dev/ttyAMA0"
 RB3 = "/dev/ttyS0"
 
 def onReceiveUsart(debugData):
-    pass
+    print 'Recived:', str(debugData)
 
 
 logWriter = LogWriter()
@@ -19,7 +19,7 @@ droneControler.setOnReceiveEvent(onReceiveUsart)
 
 droneControler.setControlData(ControlData.SomeValidControlCommand())
 
-time.sleep(60)
+time.sleep(30)
 
 droneControler.setControlData(ControlData.StopCommand())
 
