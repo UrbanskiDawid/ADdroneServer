@@ -42,18 +42,11 @@ class IpController:
             time.sleep(5)
         self.sock.listen(1)
 
-        self.heartBeatThread=TimerThread("heartBeat",self.heartBeat,2)
-        self.heartBeatThread.start()
-
     def setOnReceiveEvent(self,reciveEvent):
         self.onReciceEvent=reciveEvent
 
     def defaultOnReciveEvent(self,dd):#DebugData
         self.logWriter.noteEvent('IpController: defaultOnReciveEvent "'+str(dd)+'"');
-
-    def heartBeat(self):
-        if self.keepConnection():
-          self.send("tick")
 
     def acceptConnection(self):
         self.keepConnectionFlag = False
@@ -65,13 +58,17 @@ class IpController:
 
     def send(self, data):
         try:
-          self.connection.send(data+"\n")
-          self.logWriter.noteEvent('Socket: Send: ' + str(data))
+          self.connection.send(data)
+          print 'Socket: send: [0x',data.encode('hex')+'] len:',len(data)
+          self.logWriter.noteEvent('Socket: send: [0x',data.encode('hex')+']')
         except:
           pass
 
-    msg=''
     def forwardIncomingPacket(self):
+      return self.forwardIncomingPacket2()
+
+    msg=''
+    def forwardIncomingPacket1(self):
         BUFFER_SIZE = 512
         try:
           data = self.connection.recv(BUFFER_SIZE)
@@ -124,9 +121,8 @@ class IpController:
     def onReceiveSignal(self, signalPongMsg):
         # immadetely response with ping
         self.send(signalPongMsg)
-        log_msg = 'IpController: Signal received [' + str(signalPongMsg.encode("hex")) + ']'
+        log_msg = 'IpController: Signal received [0x' + str(signalPongMsg.encode("hex")) + '] len:'+str(len(signalPongMsg))
         self.logWriter.noteEvent(log_msg)
-        print log_msg
 
     def forwardIncomingPacket2(self):
         BUFFER_SIZE = 512
@@ -147,7 +143,6 @@ class IpController:
     def close(self):
         self.keepConnectionFlag = False
         self.sock.close()
-        TimerThread.kill(self.heartBeatThread)
 
     def keepConnection(self):
         return self.keepConnectionFlag

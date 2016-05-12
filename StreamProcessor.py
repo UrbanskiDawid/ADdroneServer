@@ -13,7 +13,7 @@ class StreamProcessor:
         if (preambleId == self.controlPreamble()[0]):
             return 34
         elif (preambleId == self.signalPreamble()[0]):
-            return 4
+            return 6
         else:
             print 'Bad preamble Id'
             raise 
