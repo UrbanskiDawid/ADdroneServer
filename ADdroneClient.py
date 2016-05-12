@@ -7,11 +7,50 @@ adress = '52.58.5.47'
 port = 6666
 
 
-class IpClient:
-    socket = None
-    
+class ADdroneClient:
+    sock = None
+    streamProcessor = None
+
+    """ ControlData sending """
+    controlData = None
+    sendingControlThread = None
+
+    # method called by sending thread to send ControlData to server
+    def sendingControlHandler(self):
+        if self.controlData is not None:
+            self.sock.send(self.controlData.data)
+
+    """ Ping sending """
+    pingTimestamp = None
+    pingData = None
+    isPongReceived = True
+    sendingSignalThread = None
+
+    # method called by sending thread to send Ping to server
+    # sending is only avalible when previous Pong was received
+    def sendingSignalHandler(self):
+        if isPongReceived:
+            pingData = '%%%%abcd'
+            isPongReceived = False
+            pingTimestamp = datetime.datetime.now()
+            self.sock.send('%%%%abcd')
+            
+            
+
+    """ on receive handlers """
+    def onDebugReceive(self, data):
+        print onDebugReceive
+        pass
+
+    def onPongReceive(self, data):
+        isPongReceived = True
+        now = datetime.datetime.now()
+        print 'onPongReceive: ' + (d.seconds*1000 + d.microseconds/1000)
+        pass
+
+
     def __init__(self, adress, port):
-        socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
         try:
             s.connect((adress, port))
@@ -19,59 +58,24 @@ class IpClient:
             print 'Unable to connect to the server!'
             sys.exit()
 
-        print 'Successfuly connected to the server'
+        print 'Successfuly connected to the server'       
 
-    
-    def send(self, data):
-        print 'Sending: ', data
-        socket.send(data)
+        self.streamProcessor = StreamProcessor(self.onDebugReceive, self.onPongReceive)
 
-    def proceedReceiving(self):
-        BUFFER_SIZE = 512
-        try:
-          data = self.connection.recv(BUFFER_SIZE)
-        except:
-          data = None
-          print 'IpClient: forwardIncomingPacket: IP receive ERROR/TIMEOUT'
+        self.sendingControlThread = TimerThread(self.sendingControlHandler, 0.1)
+        self.sendingSignalThread = TimerThread(self.sendingSignalHandler, 1.0)
 
-        if not data:
-            print 'IpController: client disconnected:', self.client_address
-            return False
-
-        print 'IpClient: received: [' + str(data.encode("hex") + ']'))
-        return True
-
-    def close(self):
-        socket.close()
-
-
-class ADdroneClient:
-    sock = None
-    controlData = None
-
-    receivingThread = None
-    sendingThread = None
-
-    def sendingHandler(self):
-        if self.controlData is not None:
-            self.sock.send(self.controlData.data)
 
     def receivingHandler(self):
         self.sock.proceedReceiving()
-
-    def __init__(self, adress, port):
-        self.sock = IpClient(adress, port)
         
-        self.sendingThread = TimerThread(sendingHandler, 0.5)
-        self.receivingThread = TimerThread(receivingHandler, 0.01) 
-
     def setControlData(self, controlData):
         self.controlData = controlData
 
     def close(self):
         self.sock.close()
-        self.receivingThread.close()
-        self.sendingThread.close()
+        self.sendingControlThread.close()
+        self.sendingSignalThread.close()
 
 
 
