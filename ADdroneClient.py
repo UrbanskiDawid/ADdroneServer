@@ -6,10 +6,13 @@ from StreamProcessor import *
 adress = '52.58.5.47'
 port = 6666
 
+connectionTime = 30 # seconds
+
 
 class ADdroneClient:
     sock = None
     streamProcessor = None
+    keepConnectionFlag = False
 
     """ ControlData sending """
     controlData = None
@@ -33,7 +36,7 @@ class ADdroneClient:
             pingData = '%%%%abcd'
             isPongReceived = False
             pingTimestamp = datetime.datetime.now()
-            self.sock.send('%%%%abcd')
+            self.sock.send(pingData)
             
             
 
@@ -43,10 +46,13 @@ class ADdroneClient:
         pass
 
     def onPongReceive(self, data):
-        isPongReceived = True
-        now = datetime.datetime.now()
-        print 'onPongReceive: ' + (d.seconds*1000 + d.microseconds/1000)
-        pass
+        if data == pingData:
+            now = datetime.datetime.now()
+            isPongReceived = True
+            d = now - pingTimestamp
+            print 'onPongReceive: ' + (d.seconds*1000 + d.microseconds/1000)
+        else:
+            print 'Bad data received at signal chanell'
 
 
     def __init__(self, adress, port):
@@ -55,10 +61,12 @@ class ADdroneClient:
         try:
             s.connect((adress, port))
         except:
-            print 'Unable to connect to the server!'
+            print 'Unable to connect to the server!', adress, ':', port
             sys.exit()
 
-        print 'Successfuly connected to the server'       
+        print 'Successfuly connected to the server', adress, ':', port      
+
+        self.keepConnectionFlag = True
 
         self.streamProcessor = StreamProcessor(self.onDebugReceive, self.onPongReceive)
 
@@ -66,8 +74,20 @@ class ADdroneClient:
         self.sendingSignalThread = TimerThread(self.sendingSignalHandler, 1.0)
 
 
-    def receivingHandler(self):
-        self.sock.proceedReceiving()
+    def proceedReceiving(self):
+        BUFFER_SIZE = 512
+        try:
+          data = self.connection.recv(BUFFER_SIZE)
+        except:
+          data = None
+          print 'proceedReceiving: IP receive ERROR/TIMEOUT'
+
+        if not data:
+            print 'IpController: client disconnected:', self.client_address
+            self.keepConnectionFlag = False
+            return
+
+        self.streamProcessor.processStream(data)
         
     def setControlData(self, controlData):
         self.controlData = controlData
@@ -84,13 +104,29 @@ client = ADdroneClient(adress, port)
 
 client.setControlData(ControlData.SomeValidControlCommand())
 
-time.sleep(30)
+startTime = datetime.datetime.now()
 
-client.setControlData(ControlData.StopCommand())
+exitingFlag = False
+exitTime = None
 
-time.sleep(0.5)
+while client.keepConnectionFlag:
+    client.proceedReceiving()
+    deltaTime = datetime.datetime.now() - startTime
+    if deltaTime.second > connectionTime:
+        # start disconection procedure
+        if not exitingFlag:
+            exitTime = datetime.datetime.now()
+        client.setControlData(ControlData.StopCommand()) 
+        exitingFlag = True
+        deltaExitingTime = datetime.datetime.now() - startTime 
+        if deltaExitingTime.second > 1:
+            client.keepConnectionFlag = False
+
+print 'Closing connection after ', connectionTime, ' seconds'
 
 client.close()
+
+print 'DONE'
 
 
 
