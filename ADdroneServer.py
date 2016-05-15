@@ -6,6 +6,7 @@ from LogWriter import *
 from time import sleep
 import signal
 import sys
+import os
 import threading
 from traceback import format_exception
 
@@ -104,7 +105,9 @@ ipController.setOnReceiveEvent(onReveiveControlDataFromIP)
 ###########################################################################
 ## MAIN LOOP
 ###########################################################################
-logWriter.noteEvent("MainThread: starting");
+log_msg="MainThread: starting"+str(os.getpid())
+logWriter.noteEvent(log_msg);
+print log_msg
 
 while not closeServerApp:
     print('MainThread: waiting for a connection')
