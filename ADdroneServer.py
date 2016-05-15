@@ -88,16 +88,16 @@ sys.excepthook = topExceptHook
 
 def onReceiveUSART(debugData):#DebugData
   global ipController
-  ipController.send(debugData)
-#  print "MainThread: onReceiveUSART: ' ",debugData,"'"
+#  print "MainThread: onReceiveUSART: [0x"+debugData.toStringHex()+"] "+str(debugData)
+  ipController.send(debugData.data)
 
 droneController.setOnReceiveEvent(onReceiveUSART)
 
 
 def onReveiveControlDataFromIP(controlData):
   global droneController
-  droneController.setControlData(controlData)
 #  print "MainThread: onReveiveControlDataFromIP: ' ",str(controlData),"'"
+  droneController.setControlData(controlData)
 
 ipController.setOnReceiveEvent(onReveiveControlDataFromIP)
 

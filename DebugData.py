@@ -65,6 +65,14 @@ class DebugData:
             return "<DebugData> wrong data"
         return self.toStringShort()
 
+    def toStringHex(self):
+        i=0
+        ret=''
+        for b in self.data:
+          ret+=b.encode('hex')
+          i=i+1
+        return ret
+
     @staticmethod
     def SomeValidDebugData():
         data = pack(DebugData.messageFormat,
