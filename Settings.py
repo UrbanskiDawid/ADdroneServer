@@ -13,9 +13,10 @@ class Settings:
     UARTBAUDRATE = 9600
     UARTSIMULATOR = False
 
-    def __init__(self):
+    def __init__(self,configFileName):
         config = ConfigParser.RawConfigParser()
-        config.read('ADdrone.cfg')
+
+        config.read(configFileName)
 
         if config.has_section('SERVER'):
             self.PORT = config.getint('SERVER', 'port')
