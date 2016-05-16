@@ -12,7 +12,7 @@ def onReceiveUsart(debugData):
     print 'Recived:', str(debugData)
 
 
-logWriter = LogWriter()
+logWriter = LogWriter('logs')
 droneControler = DroneController(RB2, 115200, False, logWriter)
 
 droneControler.setOnReceiveEvent(onReceiveUsart)
