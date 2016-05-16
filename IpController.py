@@ -70,48 +70,6 @@ class IpController:
         #print log_msg
         self.logWriter.noteEvent(log_msg)
 
-    def forwardIncomingPacket(self):
-      return self.forwardIncomingPacket2()
-
-    msg=''
-    def forwardIncomingPacket1(self):
-        BUFFER_SIZE = 512
-        try:
-          data = self.connection.recv(BUFFER_SIZE)
-          self.logWriter.noteEvent('IpController: received: [0x' + str(data.encode("hex")+']'))
-        except:
-          data = None
-          print 'IpController: forwardIncomingPacket: IP receive ERROR/TIMEOUT'
-
-        if not data:
-            print 'IpController: client disconnected:', self.client_address
-            self.keepConnectionFlag = False
-            return
-
-        i=0
-        dLen=len(data)
-        while i<dLen:
-          if len(self.msg)==0:#no msg
-            if i+4>dLen:
-              break
-            if data[i+0]=='$' and data[i+1]=='$' and data[i+2]=='$' and data[i+3]=='$':
-              self.msg='$$$$'
-              i+=4
-              continue
-            i+=4
-          else:
-            self.msg+=str(data[i])
-            i+=1
-            if len(self.msg) == 38:
-              newControlData = ControlData(self.msg)
-              if newControlData.isValid():
-                log_msg = 'IpController: ControlData received: [' + str(newControlData) + ']'
-                self.onReciceEvent(newControlData)#self.msg)
-              else:
-                log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
-              self.logWriter.noteEvent(log_msg)
-              self.msg=[]
-
     # event called by StreamProcessor - on control preamble
     def onReceiveControl(self, controlDataMsg):
         newControlData = ControlData(controlDataMsg)
@@ -127,15 +85,14 @@ class IpController:
     def onReceiveSignal(self, signalPongMsg):
         # immadetely response with ping
         self.send(signalPongMsg)
-        log_msg = 'IpController: Signal received [0x' + str(signalPongMsg.encode("hex")) + '] len:'+str(len(signalPongMsg))
+        log_msg = 'IpController: Signal received [0x' + str(signalPongMsg.encode("hex")) + ']'
         self.logWriter.noteEvent(log_msg)
 
-    def forwardIncomingPacket2(self):
+    def forwardIncomingPacket(self):
         BUFFER_SIZE = 512
         try:
           data = self.connection.recv(BUFFER_SIZE)
           log_msg='IpController: received: [0x' + str(data.encode("hex"))+']'
-#          print log_msg
           self.logWriter.noteEvent(log_msg)
           
         except:

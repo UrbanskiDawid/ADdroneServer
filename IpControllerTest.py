@@ -1,7 +1,7 @@
 from IpController import *
 from LogWriter import *
 
-logWriter = LogWriter()
+logWriter = LogWriter('logs/')
 
 receiver = IpController('', \
                         True, \
@@ -19,7 +19,7 @@ receiver.setOnReceiveEvent(onReveiveControlDataFromIP)
 print('MainThread: waiting for a connection')
 receiver.acceptConnection()
 while (receiver.keepConnection()):
-    receiver.forwardIncomingPacket2()
+    receiver.forwardIncomingPacket()
 print('MainThread: connection closed')
 
 logWriter.noteEvent("MainThread: endHandler");
