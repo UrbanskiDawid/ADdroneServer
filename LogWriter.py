@@ -7,9 +7,9 @@ class LogWriter:
     lock = None
     open = False
 
-    def __init__(self):
+    def __init__(self,dir):
         date = datetime.now().strftime('%d-%b-%Y_%H%M%S')
-        fileName = 'logs/ADDroneServer_' + date + '.log'
+        fileName = dir+'/ADDroneServer_' + date + '.log'
         print("LogWriter: starting '"+fileName+"'");
         self.logfile = open(fileName, 'w')
         self.lock = threading.Lock()

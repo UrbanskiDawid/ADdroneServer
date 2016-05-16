@@ -56,13 +56,19 @@ class IpController:
         self.logWriter.noteEvent('IpController: Client connected: ' + \
                                  str(self.client_address))
 
+    def icConnected(self):
+        return not (self.connection==None)
+
     def send(self, data):
+        if not self.icConnected():
+          return False
         try:
           self.connection.send(data)
-          print 'Socket: send: [0x',data.encode('hex')+'] len:',len(data)
-          self.logWriter.noteEvent('Socket: send: [0x',data.encode('hex')+']')
-        except:
-          pass
+          log_msg='IpController: send: [0x'+str(data.encode("hex"))+'] len:'+str(len(data))
+        except Exception as e:
+          log_msg='IpController: send failed: '+str(data)+" Exception: "+str(e)
+        #print log_msg
+        self.logWriter.noteEvent(log_msg)
 
     def forwardIncomingPacket(self):
       return self.forwardIncomingPacket2()
@@ -99,7 +105,7 @@ class IpController:
             if len(self.msg) == 38:
               newControlData = ControlData(self.msg)
               if newControlData.isValid():
-                log_msg = 'IpController: valid ControlData received: [' + str(newControlData) + ']'
+                log_msg = 'IpController: ControlData received: [' + str(newControlData) + ']'
                 self.onReciceEvent(newControlData)#self.msg)
               else:
                 log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
@@ -112,9 +118,9 @@ class IpController:
         if newControlData.isValid():
             # forward data to DronController
             self.onReciceEvent(newControlData)
-            log_msg = 'IpController: valid ControlData received: [' + str(newControlData) + ']'
+            log_msg = 'IpController: received ControlData: [' + str(newControlData) + ']'
         else:
-            log_msg = 'IpController: INVALID ControlData received: [' + str(self.msg) + ']'
+            log_msg = 'IpController: received INVALID ControlData: [' + str(self.msg) + ']'
         self.logWriter.noteEvent(log_msg)
 
     # event called by StreamProcessor - on signal preamble
@@ -128,7 +134,10 @@ class IpController:
         BUFFER_SIZE = 512
         try:
           data = self.connection.recv(BUFFER_SIZE)
-          self.logWriter.noteEvent('IpController: received: [0x' + str(data.encode("hex")+']'))
+          log_msg='IpController: received: [0x' + str(data.encode("hex"))+']'
+#          print log_msg
+          self.logWriter.noteEvent(log_msg)
+          
         except:
           data = None
           print 'IpController: forwardIncomingPacket: IP receive ERROR/TIMEOUT'

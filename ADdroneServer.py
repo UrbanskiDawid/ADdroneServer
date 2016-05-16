@@ -4,36 +4,66 @@ from IpController import *
 from Settings import *
 from LogWriter import *
 from time import sleep
-import signal
-import sys
-import threading
 from traceback import format_exception
+import signal,sys,os,threading
+import getopt
+
+closeServerApp = False # Main loop control (True=stop this app)
+
+configFileName="ADdrone.cfg"
+logsDIR="logs/"
+
+###########################################################################
+## LOAD SCRIPT ARGUMENTS
+###########################################################################
+customDIR="."
+customPort=None
+
+def help():
+  print sys.argv[0]+' -d <dir> -p <portNum>'
+  sys.exit(2)
+
+try:
+   argv=sys.argv[1:]
+   opts, args = getopt.getopt(argv,"hd:p:",["daemon=","port="])
+except getopt.GetoptError as err:
+   print "ERROR: wrong args: ",err
+   help()
+
+for opt, arg in opts:
+  if opt == '-h':
+    help()
+  elif opt in ("-d", "--deamon"):
+    customDIR=str(arg)+"/"
+    configFileName=customDIR+configFileName
+    logsDIR=customDIR+"/"+logsDIR
+  elif opt in ("-p", "--ofile"):
+    customPort=int(arg)
+  else:
+    print "Error: unknown args"
+    help()
+
+if not os.path.isfile(configFileName):
+  print "ERROR: can't find config file: "+str(configFileName)
+  sys.exit(1)
+
+if not os.path.exists(logsDIR):
+  print "ERROR: can't find log dir: "+str(logsDIR)
+  sys.exit(1)
 
 ###########################################################################
 ## LOAD SETTINGS
 ###########################################################################
-SETTINGS = Settings()
-
-if (len(sys.argv) == 2):
-    SETTINGS.PORT = int(sys.argv[1])
-
-server_name = ""  # "localhost"
-
-if SETTINGS.TCPSIMULATOR == True:
-    print('MainThread: Using port simulator')
-else:
-    print('MainThread: Using port number ' + str(SETTINGS.PORT))
-
-server_address = (server_name, SETTINGS.PORT)
-
-closeServerApp = False # Main loop control (True=stop this app)
+SETTINGS = Settings(configFileName)
+if customPort:
+  SETTINGS.PORT=customPort
 
 ###########################################################################
 ## INIT
 ###########################################################################
 #TODO make log writer global
 
-logWriter = LogWriter()
+logWriter = LogWriter(customDIR+"/logs/")
 
 ##UART part
 droneController=DroneController(SETTINGS.UARTDEVICE, \
@@ -43,7 +73,8 @@ droneController=DroneController(SETTINGS.UARTDEVICE, \
 ##-------
 
 ##IP part
-ipController = IpController(server_address, \
+server_name = ""  # "localhost"
+ipController = IpController( (server_name, SETTINGS.PORT), \
                         SETTINGS.TCPSIMULATOR, \
                         True, \
                         SETTINGS.BINDRETRYNUM, \
@@ -87,16 +118,16 @@ sys.excepthook = topExceptHook
 
 def onReceiveUSART(debugData):#DebugData
   global ipController
-  ipController.send(debugData)
-#  print "MainThread: onReceiveUSART: ' ",debugData,"'"
+#  print "MainThread: onReceiveUSART: [0x"+debugData.toStringHex()+"] "+str(debugData)
+  ipController.send(debugData.data)
 
 droneController.setOnReceiveEvent(onReceiveUSART)
 
 
 def onReveiveControlDataFromIP(controlData):
   global droneController
-  droneController.setControlData(controlData)
 #  print "MainThread: onReveiveControlDataFromIP: ' ",str(controlData),"'"
+  droneController.setControlData(controlData)
 
 ipController.setOnReceiveEvent(onReveiveControlDataFromIP)
 
@@ -104,7 +135,15 @@ ipController.setOnReceiveEvent(onReveiveControlDataFromIP)
 ###########################################################################
 ## MAIN LOOP
 ###########################################################################
-logWriter.noteEvent("MainThread: starting");
+
+if SETTINGS.TCPSIMULATOR == True:
+    print('MainThread: Using port simulator')
+else:
+    print('MainThread: Using port number ' + str(SETTINGS.PORT))
+
+log_msg="MainThread: starting"+str(os.getpid())
+logWriter.noteEvent(log_msg);
+print log_msg
 
 while not closeServerApp:
     print('MainThread: waiting for a connection')
