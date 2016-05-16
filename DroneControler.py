@@ -151,6 +151,11 @@ class DroneController:
         if nbReads > 1:
             log_message = 'DroneController: WARNING same ControlData read [' + str(nbReads) + '] times.'
             self.logWriter.noteEvent(log_message)
+        if nbRead > 5:
+            # ERROR, connection lost, setting ERROR_CONNECTION flag to controller
+            data.setErrorConnection()
+            log_message = 'DroneController: ERROR ControlData update timeout, setting ERROR_CONNECTION.'
+            self.logWriter.noteEvent(log_message)
         return data
 
     def getDebugData(self):

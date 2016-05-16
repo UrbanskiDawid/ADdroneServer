@@ -46,6 +46,16 @@ class ControlData:
 
         self.valid=True
         return True
+
+    def setErrorConnection(self):
+        tData = unpack(ControlData.messageFormat, self.data)      
+        # 6100 - ERROR_CONNECTION
+        newData = pack(ControlData.messageFormat, tData[0], tData[1], tData[2], 
+            tData[3], tData[4], 6100, tData[6], tData[7], tData[8])
+        # TODO recalculate CRC
+        newCrc = self.calculateCrc(newData)
+        self.data = pack(ControlData.messageFormat, tData[0], tData[1], tData[2], 
+            tData[3], tData[4], 6100, tData[6], tData[7], newCrc)
     
     #24242424|00000000|00000000|00000000|85f6123f|e803|0a|ffffffffffffffffffffffffff|9ea6
     def toStringHex(self):
@@ -73,6 +83,18 @@ class ControlData:
         if not self.isValid():
             return "<ControlData> wrong data"
         return self.toStringShort()
+
+    def calculateCrc(self, data):
+        crcShort = 0
+        b = map(ord, data)
+        for byte in b:
+            crcShort = ((crcShort >> 8) | (crcShort << 8) )& 0xffff
+            crcShort ^= (byte & 0xff)
+            crcShort ^= ((crcShort & 0xff) >> 4)
+            crcShort ^= (crcShort << 12) & 0xffff
+            crcShort ^= ((crcShort & 0xFF) << 5) & 0xffff
+        crcShort &= 0xffff
+        return crcShort
 
     def getData(self):#return string
       return self.data
