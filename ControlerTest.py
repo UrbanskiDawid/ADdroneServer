@@ -19,7 +19,7 @@ droneControler.setOnReceiveEvent(onReceiveUsart)
 
 droneControler.setControlData(ControlData.SomeValidControlCommand())
 
-time.sleep(30)
+time.sleep(10)
 
 droneControler.setControlData(ControlData.StopCommand())
 
