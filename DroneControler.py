@@ -20,9 +20,9 @@ class DroneController:
 
     logWriter = None
 
-    nbReads = 0
+    noControlUpdateCounter = 0
+    noDebugReceivingCounter = 0 
     maxTimeoutCounter = 20 # 20 * 0.05 = 1s
-    timeoutCounter = 0
 
     preBuffer = ''
     dataBuffer = ''
@@ -80,14 +80,14 @@ class DroneController:
         data = self.uartController.recv()
         dataLength = len(data)
         if dataLength == 0:
-            self.timeoutCounter += 1
-            if self.timeoutCounter >= self.maxTimeoutCounter:
+            self.noDebugReceivingCounter += 1
+            if self.noDebugReceivingCounter >= self.maxTimeoutCounter:
                 # TODO set controller state in latched debugData as NO_CONNECTION
                 # TODO call onReceiveEvent for transmi error via IP
                 print 'DroneController: receiving thread timeout !'
-                self.timeoutCounter = 0
+                self.noDebugReceivingCounter = 0
             return
-        self.timeoutCounter = 0
+        self.noDebugReceivingCounter = 0
 
         i = 0
         while i < dataLength:  
@@ -139,24 +139,24 @@ class DroneController:
 
         self.controlDataLock.acquire()
         self.controlData = controlData
-        self.nbReads = 0
+        self.noControlUpdateCounter = 0
         self.controlDataLock.release()
 
     def getControlData(self):
         self.controlDataLock.acquire()
         data = self.controlData
-        self.nbReads += 1
-        nbReads = self.nbReads
+        self.noControlUpdateCounter += 1
+        nbReads = self.noControlUpdateCounter
         self.controlDataLock.release()
         if nbReads > 1:
             log_message = 'DroneController: WARNING same ControlData read [' + str(nbReads) + '] times.'
             self.logWriter.noteEvent(log_message)
-        if nbReads > 5 and data is not None:
+        if nbReads >= self.maxTimeoutCounter and data is not None:
             # ERROR, connection lost, setting ERROR_CONNECTION flag to controller
             data.setErrorConnection()
-            print 'DroneController: ERROR ControlData update timeout, setting ERROR_CONNECTION.'
             log_message = 'DroneController: ERROR ControlData update timeout, setting ERROR_CONNECTION.'
             self.logWriter.noteEvent(log_message)
+            print log_message
         return data
 
     def getDebugData(self):

@@ -21,16 +21,16 @@ droneControler.setOnReceiveEvent(onReceiveUsart)
 maxTime = 10
 
 i = 0
-while i < maxTime*10:
+while i < maxTime*2:
     i += 1
     droneControler.setControlData(ControlData.SomeValidControlCommand())
-    time.sleep(0.1)
+    time.sleep(0.5)
 
 i = 0
-while i < 5:
+while i < 2:
     i += 1
     droneControler.setControlData(ControlData.StopCommand())
-    time.sleep(0.1)
+    time.sleep(0.5)
 
 droneControler.close()
 
