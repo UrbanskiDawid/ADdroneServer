@@ -78,7 +78,7 @@ class IpController:
             self.onReciceEvent(newControlData)
             log_msg = 'IpController: received ControlData: [' + str(newControlData) + ']'
         else:
-            log_msg = 'IpController: received INVALID ControlData: [' + str(self.msg) + ']'
+            log_msg = 'IpController: received INVALID ControlData: [' + controlDataMsg + ']'
         self.logWriter.noteEvent(log_msg)
 
     # event called by StreamProcessor - on signal preamble

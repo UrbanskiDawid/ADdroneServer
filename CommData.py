@@ -1,21 +1,21 @@
 from struct import *
-import sys
+from CommDataValue import *
+from sys import *
 
 class CommData:
     data = None
     valid = None
 
-    def __init__(self, message):
-        self.data = message
-        self.valid = None
-
-    def __init__(self, commDataValue):
-        self.data = commDataValue.getData()
+    def __init__(self, data):
+        if isinstance(data, str):
+            self.data = data
+        else:
+            self.data = data.getCommData()
         self.valid = None
 
     def computeCrc(self):
         crcShort = 0
-        b = map(ord, self.data)
+        b = map(ord, self.data[4:-2])
         for byte in b:
             crcShort = ((crcShort >> 8) | (crcShort << 8) )& 0xffff
             crcShort ^= (byte & 0xff)
@@ -46,15 +46,14 @@ class CommData:
            self.data[1]!='$' or \
            self.data[2]!='$' or \
            self.data[3]!='$':
-           sys.stderr.write('data wrong prefix: '+str(self.getPrefix())+'\n')
+           sys.stderr.write('data wrong prefix\n')
            self.valid=False
            return False
 
-        #TODO: check CRC
-        #if CRC is wrong
-        #   sys.stderr.write('data wrong CRC\n')
-        #   self.valid=False
-        #   return False
+        if self.computeCrc() != unpack("<H", self.data[-2:])[0]:
+           sys.stderr.write('data wrong CRC\n')
+           self.valid=False
+           return False
 
         self.valid=True
         return True
@@ -66,13 +65,14 @@ class CommData:
         pass
 
     def toStringHex(self):
-        i=0
-        sep=[4,8,12,16,20,24,28,32,36]
-        ret=''
+        i = 0
+        sep = [4,8,12,16,20,24,28,32,36]
+        ret = ''
         for b in self.data:
-          if i in sep: ret+='|'
-          ret+=b.encode('hex')
-          i=i+1
+          if i in sep: 
+            ret += '|'
+          ret += b.encode('hex')
+          i = i + 1
         return ret
 
     def toStringValue(self):
