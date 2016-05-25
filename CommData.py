@@ -1,5 +1,4 @@
 from struct import *
-from CommDataValue import *
 from sys import *
 
 class CommData:
@@ -7,10 +6,11 @@ class CommData:
     valid = None
 
     def __init__(self, data):
+        from CommDataValue import CommDataValue
         if isinstance(data, str):
             self.data = data
-        else:
-            self.data = data.getCommData()
+        elif isinstance(data, CommDataValue):
+            self.data = data.getCommData().data
         self.valid = None
 
     def computeCrc(self):
@@ -37,7 +37,7 @@ class CommData:
            self.valid=False
            return False
 
-        if len(self.data)!=38:
+        if len(self.data) != 38:
            sys.stderr.write('data len != 38\n')
            self.valid=False
            return False

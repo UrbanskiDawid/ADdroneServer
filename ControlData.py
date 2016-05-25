@@ -1,6 +1,5 @@
 from struct import *
 from CommData import *
-from ControlDataValue import *
 import sys
 
 class ControlData(CommData):
@@ -11,6 +10,7 @@ class ControlData(CommData):
         return "ControlData"
 
     def getValue(self):
+        from ControlDataValue import ControlDataValue
         return ControlDataValue(self)
 
     def toStringHex(self):
@@ -28,23 +28,25 @@ class ControlData(CommData):
     def setErrorConnection(self):
         dataValue = self.getValue()
         dataValue.controllerCommand = 6100 # ERROR_CONNECTION
-        self.data = dataValue.getData()
-        dataValue.CRC = self.calculateCrc()
-        self.data = dataValue.getData()
+        self.data = dataValue.getCommData().data
+        dataValue.CRC = self.computeCrc()
+        self.data = dataValue.getCommData().data
    
     @staticmethod
     def StopCommand():
+        from ControlDataValue import ControlDataValue
         dataValue = ControlDataValue()
         dataValue.controllerCommand = 2000 # STOP
         dataValue.solverMode = 1 # STABLILIZATION
-        dataValue.CRC = unpack("<H", "727a")[0] # CRC
+        dataValue.CRC = unpack("<H", "0x727a")[0] # CRC
         return ControlData(dataValue)
 
     @staticmethod
     def SomeValidControlCommand():
+        from ControlDataValue import ControlDataValue
         dataValue = ControlDataValue()
         dataValue.throttle = 0.4
         dataValue.controllerCommand = 1000 # STOP
         dataValue.solverMode = 1 # STABLILIZATION
-        dataValue.CRC = unpack("<H", "4588")[0] # CRC
+        dataValue.CRC = int("4588", 16) # CRC
         return ControlData(dataValue)

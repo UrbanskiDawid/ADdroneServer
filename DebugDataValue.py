@@ -1,8 +1,8 @@
 from struct import *
-from CommDataValue import *
-from DebugData import *
+from CommDataValue import CommDataValue
+from DebugData import DebugData
 
-class DebugDataValue(CommDataValue.CommDataValue):
+class DebugDataValue(CommDataValue):
 
     # debug communication data struct
     messageFormat = ('<4s3f3ffHBBH')
@@ -29,7 +29,8 @@ class DebugDataValue(CommDataValue.CommDataValue):
     battery = 0
     flags = 0
 
-    def __init__(self, debugData):
+    def __init__(self, debugData = None):
+        self.preamble = "$$$$"
         if controlData is not None:
             values = unpack(self.messageFormat, debugData.getData()) 
             self.preamble = values[0]

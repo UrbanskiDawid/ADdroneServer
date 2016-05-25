@@ -10,6 +10,7 @@ class DebugData(CommData):
         return "DebugData"
 
     def getValue(self):
+        from DebugDataValue import DebugDataValue
         return DebugDataValue(self)
 
     def toStringHex(self):
@@ -29,6 +30,7 @@ class DebugData(CommData):
 
     @staticmethod
     def SomeValidControlCommand():
+        from DebugDataValue import DebugDataValue
         dataValue = DebugDataValue()
         dataValue.controllerState = 1000 # STOP
         dataValue.battery = 10

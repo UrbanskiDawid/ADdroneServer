@@ -1,6 +1,6 @@
 from struct import *
-from CommDataValue import *
-from ControlData import *
+from CommDataValue import CommDataValue
+from ControlData import ControlData
 
 class ControlDataValue(CommDataValue):
 
@@ -25,7 +25,8 @@ class ControlDataValue(CommDataValue):
     controllerCommand = 0
     solverMode = 0
     
-    def __init__(self, controlData):
+    def __init__(self, controlData = None):
+        self.preamble = "$$$$"
         if controlData is not None:
             values = unpack(self.messageFormat, controlData.getData()) 
             self.preamble = values[0]
@@ -38,7 +39,7 @@ class ControlDataValue(CommDataValue):
             self.CRC = values[8]
 
     def getCommData(self):
-        data = pack(ControlData.messageFormat,
+        data = pack(self.messageFormat,
             self.preamble, 
             self.roll, self.pitch, self.yaw,
             self.throttle,
@@ -57,7 +58,7 @@ class ControlDataValue(CommDataValue):
 
     @staticmethod
     def StopCommand():
-        data = pack(ControlData.messageFormat,
+        data = pack(ControlDataValue.messageFormat,
                     "$$$$",
                     0.0, 0.0, 0.0, 0.0, #roll pith yaw throttle
                     2000,               # cmd
@@ -68,7 +69,7 @@ class ControlDataValue(CommDataValue):
 
     @staticmethod
     def SomeValidControlCommand():
-        data = pack(ControlData.messageFormat,
+        data = pack(ControlDataValue.messageFormat,
                     "$$$$",
                     0.0, 0.0, 0.0, 0.4, #roll pith yaw throttle
                     1000,               # cmd

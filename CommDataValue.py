@@ -4,7 +4,7 @@ from CommData import *
 class CommDataValue:
 
     # preamble and CRC is present in every communication data
-    preamble = "$$$$"
+    preamble = None
     CRC = None
     
     def __init__(self, commData = None):
