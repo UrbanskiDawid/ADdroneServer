@@ -82,9 +82,10 @@ class DroneController:
         if dataLength == 0:
             self.noDebugReceivingCounter += 1
             if self.noDebugReceivingCounter >= self.maxTimeoutCounter:
-                # set ERROR_CONNECTION flag and notify IpController
-                self.debugData.setConnectionLost()
-                self.onReceive(self.debugData)
+                if self.debugData is not None:
+		    # set ERROR_CONNECTION flag and notify IpController
+                    self.debugData.setConnectionLost()
+                    self.onReceive(self.debugData)
                 print 'DroneController: receiving thread timeout !'
                 self.noDebugReceivingCounter = 0
             return
