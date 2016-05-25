@@ -31,7 +31,7 @@ class DebugDataValue(CommDataValue):
 
     def __init__(self, debugData = None):
         self.preamble = "$$$$"
-        if controlData is not None:
+        if debugData is not None:
             values = unpack(self.messageFormat, debugData.getData()) 
             self.preamble = values[0]
             self.roll = values[1]
@@ -47,19 +47,20 @@ class DebugDataValue(CommDataValue):
             self.CRC = values[11]
 
     def getCommData(self):
-        data = pack(ControlData.messageFormat,
+        data = pack(self.messageFormat,
             self.preamble, 
             self.roll, self.pitch, self.yaw,
-            self.throttle,
-            self.controllerCommand,
-            self.solverMode,
-            "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff", # padding
+            self.lat, self.lon, self.alt,
+            self.speed,
+            self.controllerState,
+            self.battery,
+            self.flags,
             self.CRC)
-        return ControlData(data)
+        return DebugData(data)
 
     def toString(self):
-        return "(rpy: ({0:.2f},{1:.2f},{2:.2f}), th: {3:.2f}, cmd: {4:d} CRC: 0x{5:04X})".format(
+        return "(rpy: ({0:.2f},{1:.2f},{2:.2f}), pos: ({3:.2f},{4:.2f},{5:.2f}), state: {6:d} CRC: 0x{7:04X})".format(
             self.roll, self.pitch, self.yaw,
-            self.throttle
-            self.controllerCommand,
+            self.lat, self.lon, self.alt,
+            self.controllerState,
             self.CRC)

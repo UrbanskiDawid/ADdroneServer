@@ -1,6 +1,3 @@
-from struct import *
-from CommData import *
-
 class CommDataValue:
 
     # preamble and CRC is present in every communication data

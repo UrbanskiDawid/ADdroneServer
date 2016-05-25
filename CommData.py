@@ -1,5 +1,5 @@
+import sys
 from struct import *
-from sys import *
 
 class CommData:
     data = None

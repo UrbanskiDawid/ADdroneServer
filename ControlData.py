@@ -1,6 +1,5 @@
 from struct import *
 from CommData import *
-import sys
 
 class ControlData(CommData):
 
@@ -38,7 +37,9 @@ class ControlData(CommData):
         dataValue = ControlDataValue()
         dataValue.controllerCommand = 2000 # STOP
         dataValue.solverMode = 1 # STABLILIZATION
-        dataValue.CRC = unpack("<H", "0x727a")[0] # CRC
+        dataValue.CRC = 0
+        temp = ControlData(dataValue)
+        dataValue.CRC = temp.computeCrc()
         return ControlData(dataValue)
 
     @staticmethod
@@ -48,5 +49,7 @@ class ControlData(CommData):
         dataValue.throttle = 0.4
         dataValue.controllerCommand = 1000 # STOP
         dataValue.solverMode = 1 # STABLILIZATION
-        dataValue.CRC = int("4588", 16) # CRC
+        dataValue.CRC = 0
+        temp = ControlData(dataValue)
+        dataValue.CRC = temp.computeCrc()
         return ControlData(dataValue)
