@@ -26,15 +26,16 @@ class ControlDataValue(CommDataValue):
     solverMode = 0
     
     def __init__(self, controlData):
-        values = unpack(self.messageFormat, controlData.getData()) 
-        self.preamble = values[0]
-        self.roll = values[1]
-        self.pitch = values[2]
-        self.yaw = values[3]
-        self.throttle = values[4]
-        self.controllerCommand = values[5]
-        self.solverMode = values[6]
-        self.CRC = values[8]
+        if controlData is not None:
+            values = unpack(self.messageFormat, controlData.getData()) 
+            self.preamble = values[0]
+            self.roll = values[1]
+            self.pitch = values[2]
+            self.yaw = values[3]
+            self.throttle = values[4]
+            self.controllerCommand = values[5]
+            self.solverMode = values[6]
+            self.CRC = values[8]
 
     def getCommData(self):
         data = pack(ControlData.messageFormat,

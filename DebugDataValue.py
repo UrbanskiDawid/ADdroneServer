@@ -30,19 +30,20 @@ class DebugDataValue(CommDataValue.CommDataValue):
     flags = 0
 
     def __init__(self, debugData):
-        values = unpack(self.messageFormat, debugData.getData()) 
-        self.preamble = values[0]
-        self.roll = values[1]
-        self.pitch = values[2]
-        self.yaw = values[3]
-        self.lat = values[4]
-        self.lon = values[5]
-        self.alt = values[6]
-        self.speed = values[7]
-        self.controllerState = values[8]
-        self.battery = values[9]
-        self.flags = values[10]
-        self.CRC = values[11]
+        if controlData is not None:
+            values = unpack(self.messageFormat, debugData.getData()) 
+            self.preamble = values[0]
+            self.roll = values[1]
+            self.pitch = values[2]
+            self.yaw = values[3]
+            self.lat = values[4]
+            self.lon = values[5]
+            self.alt = values[6]
+            self.speed = values[7]
+            self.controllerState = values[8]
+            self.battery = values[9]
+            self.flags = values[10]
+            self.CRC = values[11]
 
     def getCommData(self):
         data = pack(ControlData.messageFormat,

@@ -6,11 +6,8 @@ class CommDataValue:
     # preamble and CRC is present in every communication data
     preamble = "$$$$"
     CRC = None
-
-    def __init(self):
-        pass
     
-    def __init__(self, commData):
+    def __init__(self, commData = None):
         pass
 
     def getCommData(self):
