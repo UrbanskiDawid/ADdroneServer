@@ -25,7 +25,11 @@ class DebugData(CommData):
     """ DEBUG DATA SPECIFIC METHODS """
 
     def setConnectionLost(self):
-        pass
+        dataValue = self.getValue()
+        dataValue.controllerState = 6100 # ERROR_CONNECTION
+        self.data = dataValue.getCommData().data
+        dataValue.CRC = self.computeCrc()
+        self.data = dataValue.getCommData().data
 
     @staticmethod
     def SomeValidDebugMessage():
