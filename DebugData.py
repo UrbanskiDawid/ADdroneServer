@@ -3,18 +3,6 @@ from CommData import *
 import sys
 
 class DebugData(CommData):
-   
-    # message struct
-    messageFormat = ('<4s3f3ffHBBH')
-    # example: ('$$$$', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1000, 10, 10, 65535)
-    # '<'         encoding = network = big endian
-    # 0     '4s'        # preamble $$$$
-    # 1,2,3 '3f'        # roll, pitch, yaw
-    # 4,5,6 '3f'        # lat, lon, alt
-    # 7     'f'         # speed
-    # 8     'H'         # controllerState
-    # 9     'BB'        # battery(tricky), flags(GPS fix | GPS 3D fix | low bat. vol. | nu | nu | nu | solver1 | solver2
-    # 6     'H'         # crc
         
     """ MESSAGE OVERRIDES """
 
@@ -39,17 +27,11 @@ class DebugData(CommData):
     def setConnectionLost(self):
         pass
 
-    # TODO - to be refactored with usage of ControlDataValue class 
     @staticmethod
-    def SomeValidDebugData():
-        data = pack(DebugData.messageFormat,
-                    "$$$$",
-                    0.0, 0.0, 0.0,
-                    0.0, 0.0, 0.0,
-                    0.0,
-                    1000,   # ctrl state
-                    10,     # bat
-                    10,     # flags
-                    65535)  # crc fake
-        return DebugData(data)
-
+    def SomeValidControlCommand():
+        dataValue = DebugDataValue()
+        dataValue.controllerState = 1000 # STOP
+        dataValue.battery = 10
+        dataValue.flags = 10
+        dataValue.CRC = unpack("<H", "65535")[0] # CRC
+        return DebugData(dataValue)

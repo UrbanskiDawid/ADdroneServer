@@ -5,24 +5,6 @@ import sys
 
 class ControlData(CommData):
 
-    # message struct
-    messageFormat='<'\
-                  '4s'\
-                  '4f'\
-                  'H'\
-                  'B'\
-                  '13s'\
-                  'H'
-    # example: ('$$$$', 0.0, 0.0, 0.0, 0.0, 1000, 10, 1, 65535)
-    # '<'         encoding = network = big endian
-    # 0     '4s'        # preamble $$$$
-    # 1,2,3 '3f'        # roll, pitch, yaw
-    # 4     'f'         # throtthe
-    # 6     'H'         # controller command
-    # 7     'B'         # solver mode
-    # 8     '13s'       # dummy 
-    # 9     'H'         # crc
-
     """ MESSAGE OVERRIDES """
 
     def typeString(self):
@@ -31,7 +13,6 @@ class ControlData(CommData):
     def getValue(self):
         return ControlDataValue(self)
 
-    #24242424|00000000|00000000|00000000|85f6123f|e803|0a|ffffffffffffffffffffffffff|9ea6
     def toStringHex(self):
         i=0
         sep=[4,8,12,16,20,22,23,36]
@@ -45,34 +26,25 @@ class ControlData(CommData):
     """ CONTROL DATA SPECIFIC METHODS """
 
     def setErrorConnection(self):
-        tData = unpack(ControlData.messageFormat, self.data)      
-        # 6100 - ERROR_CONNECTION
-        newData = pack(ControlData.messageFormat, tData[0], tData[1], tData[2], 
-            tData[3], tData[4], 6100, tData[6], tData[7], tData[8])
-        # TODO recalculate CRC
-        newCrc = self.calculateCrc(newData)
-        self.data = pack(ControlData.messageFormat, tData[0], tData[1], tData[2], 
-            tData[3], tData[4], 6100, tData[6], tData[7], newCrc)
-
-    # TODO - to be refactored with usage of ControlDataValue class   
+        dataValue = self.getValue()
+        dataValue.controllerCommand = 6100 # ERROR_CONNECTION
+        self.data = dataValue.getData()
+        dataValue.CRC = self.calculateCrc()
+        self.data = dataValue.getData()
+   
     @staticmethod
     def StopCommand():
-        data = pack(ControlData.messageFormat,
-                    "$$$$",
-                    0.0, 0.0, 0.0, 0.0, #roll pith yaw throttle
-                    2000,               # cmd
-                    1,                  # solver mode
-                    "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",    #padding
-                    0x727a)             #crc
-        return ControlData(data)
+        dataValue = ControlDataValue()
+        dataValue.controllerCommand = 2000 # STOP
+        dataValue.solverMode = 1 # STABLILIZATION
+        dataValue.CRC = unpack("<H", "727a")[0] # CRC
+        return ControlData(dataValue)
 
     @staticmethod
     def SomeValidControlCommand():
-        data = pack(ControlData.messageFormat,
-                    "$$$$",
-                    0.0, 0.0, 0.0, 0.4, #roll pith yaw throttle
-                    1000,               # cmd
-                    1,                  # solver mode
-                    "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",    #padding
-                    0x4588)             #crc
-        return ControlData(data)
+        dataValue = ControlDataValue()
+        dataValue.throttle = 0.4
+        dataValue.controllerCommand = 1000 # STOP
+        dataValue.solverMode = 1 # STABLILIZATION
+        dataValue.CRC = unpack("<H", "4588")[0] # CRC
+        return ControlData(dataValue)

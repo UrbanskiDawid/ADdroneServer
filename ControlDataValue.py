@@ -53,3 +53,25 @@ class ControlDataValue(CommDataValue):
             self.throttle,
             self.controllerCommand,
             self.CRC)
+
+    @staticmethod
+    def StopCommand():
+        data = pack(ControlData.messageFormat,
+                    "$$$$",
+                    0.0, 0.0, 0.0, 0.0, #roll pith yaw throttle
+                    2000,               # cmd
+                    1,                  # solver mode
+                    "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",    #padding
+                    0x727a)             #crc
+        return ControlData(data)
+
+    @staticmethod
+    def SomeValidControlCommand():
+        data = pack(ControlData.messageFormat,
+                    "$$$$",
+                    0.0, 0.0, 0.0, 0.4, #roll pith yaw throttle
+                    1000,               # cmd
+                    1,                  # solver mode
+                    "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",    #padding
+                    0x4588)             #crc
+        return ControlData(data)
