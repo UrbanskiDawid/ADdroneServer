@@ -156,6 +156,7 @@ class DroneController:
         if nbReads >= self.maxTimeoutCounter and data is not None:
             # ERROR, connection lost, setting ERROR_CONNECTION flag to controller
             data.setErrorConnection()
+            self.noControlUpdateCounter = 0
             log_message = 'DroneController: ERROR ControlData update timeout, setting ERROR_CONNECTION.'
             self.logWriter.noteEvent(log_message)
             print log_message

@@ -33,12 +33,12 @@ class CommData:
            return self.valid
 
         if self.data is None:
-           sys.stderr.write('data = None\n')
+           sys.stderr.write(self.typeString() + ' data = None\n')
            self.valid=False
            return False
 
         if len(self.data) != 38:
-           sys.stderr.write('data len != 38\n')
+           sys.stderr.write(self.typeString() + ' data len != 38\n')
            self.valid=False
            return False
 
@@ -46,12 +46,12 @@ class CommData:
            self.data[1]!='$' or \
            self.data[2]!='$' or \
            self.data[3]!='$':
-           sys.stderr.write('data wrong prefix\n')
+           sys.stderr.write(self.typeString() + ' data wrong prefix\n')
            self.valid=False
            return False
 
         if self.computeCrc() != unpack("<H", self.data[-2:])[0]:
-           sys.stderr.write('data wrong CRC\n')
+           sys.stderr.write(self.typeString() + ' data wrong CRC\n')
            self.valid=False
            return False
 
