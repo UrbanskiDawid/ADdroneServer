@@ -5,6 +5,8 @@ from Settings import *
 from LogWriter import *
 from time import sleep
 from traceback import format_exception
+from TimerThread import *
+import ZTEmodem
 import signal,sys,os,threading
 import getopt
 
@@ -65,6 +67,8 @@ if customPort:
 
 logWriter = LogWriter(customDIR+"/logs/")
 
+modem=ZTEmodem()
+
 ##UART part
 droneController=DroneController(SETTINGS.UARTDEVICE, \
                                 SETTINGS.UARTBAUDRATE, \
@@ -89,9 +93,11 @@ def endHandler(signal, frame):
   global closeServerApp
   global ipController
   global droneController
+  global modemThread
   logWriter.noteEvent("MainThread: endHandler");
   ipController.close()
   droneController.close()
+  TimerThread.kill(modemThread)
   closeServerApp = True
   logWriter.close()
   sys.exit(0)
@@ -131,6 +137,16 @@ def onReveiveControlDataFromIP(controlData):
 
 ipController.setOnReceiveEvent(onReveiveControlDataFromIP)
 
+def modemThreadTick():
+  data=modem.getModemData()
+  log_msg="modem: "
+  if data:
+    log_msg+=str(data)
+  else:
+    log_msg+="error"
+  logWriter.noteEvent(log_msg)
+
+modemThread = TimerThread('modemThread',sendThread, 0.01)
 
 ###########################################################################
 ## MAIN LOOP
