@@ -9,7 +9,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind((TCP_IP, TCP_PORT))
 sock.listen(1)
 
-print "Starting TCP ping server..."
+print 'Server started over TCP, adr: ', TCP_IP, ':', TCP_PORT
 
 while True:
     connection, address = sock.accept()
