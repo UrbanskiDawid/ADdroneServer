@@ -18,7 +18,7 @@ droneControler = DroneController(RB2, 115200, False, logWriter)
 droneControler.setOnReceiveEvent(onReceiveUsart)
 
 # time of test in seconds
-maxTime = 10
+maxTime = 30
 
 i = 0
 while i < maxTime*2:
