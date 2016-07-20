@@ -3,4 +3,5 @@ __pycache__/
 .ropeproject/
 start_sequence.dat
 toBinaryConverter
+logs/
 *~
