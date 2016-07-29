@@ -6,7 +6,7 @@ from LogWriter import *
 from time import sleep
 from traceback import format_exception
 from TimerThread import *
-import ZTEmodem
+from ZTEmodem import *
 import signal,sys,os,threading
 import getopt
 
@@ -146,7 +146,7 @@ def modemThreadTick():
     log_msg+="error"
   logWriter.noteEvent(log_msg)
 
-modemThread = TimerThread('modemThread',sendThread, 0.01)
+modemThread = TimerThread('modemThread',modemThreadTick, 0.01)
 
 ###########################################################################
 ## MAIN LOOP
