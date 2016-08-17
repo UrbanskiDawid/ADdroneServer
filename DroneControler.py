@@ -4,23 +4,18 @@ from threading import Thread, Event, Lock
 import time
 from TimerThread import *
 from FakeUartController import *
-from     UartController import *
+from UartController import *
+from StreamProcessor import *
 
 
 # object used to handle UART part for communication with controller
 class DroneController:
     uartController = None
 
-    controlDataLock = None    
-    controlData = None
-    debugData = None
-
-    sendingThread = None
     receivingThread = None
 
     logWriter = None
 
-    noControlUpdateCounter = 0
     noDebugReceivingCounter = 0 
     maxTimeoutCounter = 20 # 20 * 0.05 = 1s
 
@@ -28,7 +23,9 @@ class DroneController:
     dataBuffer = ''
     preambleFlag = False
 
-    onReceive = None # Event to call when read data from USART
+    onReceiveEvent = None # Event to call when read data from USART
+
+    streamProcessor = None
 
     #uartDev - None if usartFake=true
     #usartBaundRate - None if usartFake=true
@@ -40,39 +37,26 @@ class DroneController:
         else:
             self.uartController = UartController(uartDev, usartBaundRate)
 
-        self.controlDataLock = Lock()
         self.logWriter = logWriter
-        self.onReceive = self.defaultOnReceiveEvent
+        self.onReceiveEvent = self.defaultOnReceiveEvent
 
-        self.sendingThread = TimerThread('sendingThread',self.sendThread, 0.05) # 20 Hz
-        self.sendingThread.start()
+        self.streamProcessor = StreamProcessor(self.onReceiveControl, self.onReceiveSignal, self.onReceiveAutopilot)
 
         self.receivingThread = TimerThread('receivingThread',self.receiveThread, 0.05) # 20 Hz
         self.receivingThread.start()
 
-    #onReceiveEvent - call this function when new DebugData is recived via UART
+    #onReceiveEvent - call this function when new CommData is received via UART
     def setOnReceiveEvent(self, onReceiveEvent):
-      self.onReceive = onReceiveEvent
+      self.onReceiveEvent = onReceiveEvent
 
-    def defaultOnReceiveEvent(self, debugData):
-      self.logWriter.noteEvent('DroneController: defaultOnReceiveEvent')
+    def defaultOnReceiveEvent(self, commData):
+      self.logWriter.noteEvent('DroneController: defaultOnReceiveEvent' + str(commData))
         
     def close(self):
       print('DroneControler: close');
-      TimerThread.kill(self.sendingThread)
       TimerThread.kill(self.receivingThread)
       self.uartController.close()
-
-    # Thread
-    # uartConnection
-    # handler for sending thread
-    def sendThread(self):
-        controlData = self.getControlData()
-        if controlData is not None:
-            log_msg = 'DroneController: Send ControlData: [0x' + controlData.data.encode("hex") + ']'
-            self.logWriter.noteEvent(log_msg)
-            self.uartController.send(controlData.data)
-                
+              
     # Thread
     # uartConnection
     # handler for receiving thread
@@ -82,85 +66,54 @@ class DroneController:
         if dataLength == 0:
             self.noDebugReceivingCounter += 1
             if self.noDebugReceivingCounter >= self.maxTimeoutCounter:
-                if self.debugData is not None:
-		    # set ERROR_CONNECTION flag and notify IpController
-                    self.debugData.setConnectionLost()
-                    self.onReceive(self.debugData)
-                print 'DroneController: receiving thread timeout !'
+                # build ERROR_CONNECTION DebugData and call onReceiveEvent
+                debugData = DebugData.SomeValidDebugMessage()
+                debugData.setConnectionLost()
+                self.logWriter.noteEvent('DroneController: Error! Receiving thread timeout.')
+                self.onReceiveEvent(debugData)
                 self.noDebugReceivingCounter = 0
             return
         self.noDebugReceivingCounter = 0
+        
+        log_msg = 'DroneController: received: [0x' + str(data.encode("hex")) + ']'
+        self.logWriter.noteEvent(log_msg)
 
-        i = 0
-        while i < dataLength:  
-            if self.proceedReceiving(data[i]):
-                log_msg = 'DroneController: Received DebugData: [0x' + self.debugData.data.encode("hex") + ']'
-                self.logWriter.noteEvent(log_msg)
-                self.onReceive(self.debugData)
-            i += 1
+        # push data to stream processor - when data packet is be received onReceive event will be called
+        self.streamProcessor.processStream(data)
 
-    # proceed one char received via UART
-    def proceedReceiving(self, ch):
-        if ch == '$':
-            self.preBuffer += ch
-            if len(self.preBuffer) == 4:
-                # preamble received, clear all
-                self.preBuffer = ''
-                self.dataBuffer = ''
-                self.preambleFlag = True
-            return False
-        result = False
-        if self.preambleFlag:
-            if len(self.preBuffer) > 0:
-                self.dataBuffer += self.preBuffer   
-            if len(self.dataBuffer) < 34:
-                self.dataBuffer += ch
-            if len(self.dataBuffer) == 34:
-                debug = DebugData("$$$$" + self.dataBuffer)
-                if debug.isValid():
-                    self.debugData = debug
-                    result = True
+    # event called by StreamProcessor - on control preamble
+    def onReceiveControl(self, debugDataMsg):
+        debugData = DebugData(debugDataMsg)
+        if debugData.isValid():
+            # forward data to DronController
+            self.onReceiveEvent(debugData)
+            log_msg = 'DroneController: DebugData received: [' + str(debugData) + ']'
+        else:
+            log_msg = 'DroneController: INVALID DebugData received: [' + debugDataMsg + ']'
+        self.logWriter.noteEvent(log_msg)
 
-                self.preBuffer = ''
-                self.dataBuffer = ''
-                self.preambleFlag = False
+    # event called by StreamProcessor - on signal preamble
+    def onReceiveSignal(self, signalPongMsg):
+        # this event should never be called on Uart communication side
+        log_msg = 'DroneController: Unexpected event received [' + str(signalPongMsg.encode("hex")) + ']'
+        self.logWriter.noteEvent(log_msg)
 
-        self.preBuffer = ''  
-        return result
+    # event called by StreamProcessor - on autopilota preamble
+    def onReceiveAutopilot(self, autopilotDataMsg):
+        autopilotData = AutopilotData(autopilotDataMsg)
+        if autopilotData.isValid():
+            # forward data to DroneController
+            self.onReceiveEvent(autopilotData)
+            log_msg = 'DroneController: AutopilotData received [0x' + str(autopilotDataMsg.encode("hex")) + ']'
+        else:
+            log_msg = 'DroneController: INVALID AutopilotData received [0x' + autopilotDataMsg + ']'
+        self.logWriter.noteEvent(log_msg)
  
-    # latch newly received ControlData for sending thread
-    def setControlData(self, controlData):
-        if not controlData.isValid():
-            log_message = 'DroneController: ERROR: wrong ControlData set'
-            self.logWriter.noteEvent(log_message)
-            print log_message
-            return
-
-        log_message = 'DroneController: ControlData set to: [' + str(controlData) + ']'
-        self.logWriter.noteEvent(log_message)
-
-        self.controlDataLock.acquire()
-        self.controlData = controlData
-        self.noControlUpdateCounter = 0
-        self.controlDataLock.release()
-
-    def getControlData(self):
-        self.controlDataLock.acquire()
-        data = self.controlData
-        self.noControlUpdateCounter += 1
-        nbReads = self.noControlUpdateCounter
-        self.controlDataLock.release()
-        if nbReads > 1:
-            log_message = 'DroneController: WARNING same ControlData read [' + str(nbReads) + '] times.'
-            self.logWriter.noteEvent(log_message)
-        if nbReads >= self.maxTimeoutCounter and data is not None:
-            # ERROR, connection lost, setting ERROR_CONNECTION flag to controller
-            data.setErrorConnection()
-            self.noControlUpdateCounter = 0
-            log_message = 'DroneController: ERROR ControlData update timeout, setting ERROR_CONNECTION.'
-            self.logWriter.noteEvent(log_message)
-            print log_message
-        return data
+    # send CommData to drone
+    def sendCommData(self, commData):
+        log_msg = 'DroneController: Forwarding CommData: [0x' + commData.data.encode("hex") + ']'
+        self.logWriter.noteEvent(log_msg)
+        self.uartController.send(commData.data)
 
     def getDebugData(self):
         return self.debugData

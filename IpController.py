@@ -12,7 +12,8 @@ class IpController:
     keepConnectionFlag = False
     client_address = None
     logWriter = None
-    onReciceEvent = None #function one argument
+    
+    onReceiveEvent = None #function one argument
 
     streamProcessor = None
 
@@ -26,7 +27,7 @@ class IpController:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print('IpController: Using ' + str(server_address[1]))
 
-        self.streamProcessor = StreamProcessor(self.onReceiveControl, self.onReceiveSignal)
+        self.streamProcessor = StreamProcessor(self.onReceiveControl, self.onReceiveSignal, self.onReceiveAutopilot)
 
         tryNum=retryNumBind
         while True:
@@ -42,11 +43,11 @@ class IpController:
             time.sleep(5)
         self.sock.listen(1)
 
-    def setOnReceiveEvent(self,reciveEvent):
-        self.onReciceEvent=reciveEvent
+    def setOnReceiveEvent(self, receiveEvent):
+        self.onReceiveEvent = receiveEvent
 
-    def defaultOnReciveEvent(self,dd):#DebugData
-        self.logWriter.noteEvent('IpController: defaultOnReciveEvent "'+str(dd)+'"');
+    def defaultOnReciveEvent(self, commData):
+        self.logWriter.noteEvent('IpController: defaultOnReceiveEvent, data: ' + str(commData));
 
     def acceptConnection(self):
         self.keepConnectionFlag = False
@@ -57,36 +58,48 @@ class IpController:
                                  str(self.client_address))
 
     def icConnected(self):
-        return not (self.connection==None)
+        return not (self.connection == None)
 
-    def send(self, data):
+    def sendCommData(self, data):
         if not self.icConnected():
           return False
         try:
           self.connection.send(data)
-          log_msg='IpController: send: [0x'+str(data.encode("hex"))+'] len:'+str(len(data))
+          log_msg = 'IpController: send: [0x' + str(data.encode("hex")) + '] len:' + str(len(data))
         except Exception as e:
-          log_msg='IpController: send failed: '+str(data)+" Exception: "+str(e)
-        #print log_msg
+          log_msg = 'IpController: send failed: ' + str(data) + " Exception: " + str(e)
+        
         self.logWriter.noteEvent(log_msg)
 
     # event called by StreamProcessor - on control preamble
     def onReceiveControl(self, controlDataMsg):
-        newControlData = ControlData(controlDataMsg)
-        if newControlData.isValid():
+        controlData = ControlData(controlDataMsg)
+        if controlData.isValid():
             # forward data to DronController
-            self.onReciceEvent(newControlData)
-            log_msg = 'IpController: received ControlData: [' + str(newControlData) + ']'
+            self.onReceiveEvent(controlData)
+            log_msg = 'IpController: ControlData received: [' + str(controlData) + ']'
         else:
-            log_msg = 'IpController: received INVALID ControlData: [' + controlDataMsg + ']'
+            log_msg = 'IpController: INVALID ControlData received: [' + controlDataMsg + ']'
         self.logWriter.noteEvent(log_msg)
 
     # event called by StreamProcessor - on signal preamble
     def onReceiveSignal(self, signalPongMsg):
         # immadetely response with ping
-        self.send(signalPongMsg)
+        self.sendCommData(signalPongMsg)
         log_msg = 'IpController: Signal received [0x' + str(signalPongMsg.encode("hex")) + ']'
         self.logWriter.noteEvent(log_msg)
+
+    # event called by StreamProcessor - on autopilota preamble
+    def onReceiveAutopilot(self, autopilotDataMsg):
+        autopilotData = AutopilotData(autopilotDataMsg)
+        if autopilotData.isValid():
+            # forward data to DroneController
+            self.onReceiveEvent(autopilotData)
+            log_msg = 'IpController: AutopilotData received [0x' + str(autopilotDataMsg.encode("hex")) + ']'
+        else:
+            log_msg = 'IpController: INVALID AutopilotData received [0x' + autopilotDataMsg + ']'
+        self.logWriter.noteEvent(log_msg)
+   
 
     def forwardIncomingPacket(self):
         BUFFER_SIZE = 512

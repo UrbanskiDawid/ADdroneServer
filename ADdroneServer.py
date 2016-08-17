@@ -97,7 +97,7 @@ def endHandler(signal, frame):
   logWriter.noteEvent("MainThread: endHandler");
   ipController.close()
   droneController.close()
-  TimerThread.kill(modemThread)
+  modemThread.stop()
   closeServerApp = True
   logWriter.close()
   sys.exit(0)
@@ -121,21 +121,21 @@ def topExceptHook(type, value, traceback):
 
 sys.excepthook = topExceptHook
 
-
-def onReceiveUSART(debugData):#DebugData
+# handler for DroneController onReceiveEvent
+# forwards valid CommData to IpController
+def onReceiveCommDataFromUart(commData):
   global ipController
-#  print "MainThread: onReceiveUSART: [0x"+debugData.toStringHex()+"] "+str(debugData)
-  ipController.send(debugData.data)
+  ipController.sendCommData(commData.data)
 
-droneController.setOnReceiveEvent(onReceiveUSART)
+droneController.setOnReceiveEvent(onReceiveCommDataFromUart)
 
-
-def onReveiveControlDataFromIP(controlData):
+# hanlder for IpController onReceiveEvent
+# forwards calid CommData to DroneController
+def onReveiveCommDataFromIp(commData):
   global droneController
-#  print "MainThread: onReveiveControlDataFromIP: ' ",str(controlData),"'"
-  droneController.setControlData(controlData)
+  droneController.sendCommData(commData)
 
-ipController.setOnReceiveEvent(onReveiveControlDataFromIP)
+ipController.setOnReceiveEvent(onReveiveCommDataFromIp)
 
 def modemThreadTick():
   data=modem.getModemData()
@@ -146,7 +146,8 @@ def modemThreadTick():
     log_msg+="error"
   logWriter.noteEvent(log_msg)
 
-modemThread = TimerThread('modemThread',modemThreadTick, 0.01)
+modemThread = TimerThread('modemThread',modemThreadTick, 2)
+modemThread.start()
 
 ###########################################################################
 ## MAIN LOOP
