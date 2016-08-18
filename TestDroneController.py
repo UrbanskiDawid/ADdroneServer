@@ -1,6 +1,5 @@
 from DroneControler import DroneController
 from ControlData import *
-from UartSender import *
 import time
 from LogWriter import *
 import struct
@@ -23,13 +22,13 @@ maxTime = 30
 i = 0
 while i < maxTime*2:
     i += 1
-    droneControler.setControlData(ControlData.SomeValidControlCommand())
+    droneControler.sendCommData(ControlData.SomeValidControlCommand())
     time.sleep(0.5)
-
+        
 i = 0
 while i < 2:
     i += 1
-    droneControler.setControlData(ControlData.StopCommand())
+    droneControler.sendCommData(ControlData.StopCommand())
     time.sleep(0.5)
 
 droneControler.close()

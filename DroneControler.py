@@ -19,10 +19,6 @@ class DroneController:
     noDebugReceivingCounter = 0 
     maxTimeoutCounter = 20 # 20 * 0.05 = 1s
 
-    preBuffer = ''
-    dataBuffer = ''
-    preambleFlag = False
-
     onReceiveEvent = None # Event to call when read data from USART
 
     streamProcessor = None
