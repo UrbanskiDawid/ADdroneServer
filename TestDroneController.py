@@ -16,20 +16,21 @@ droneControler = DroneController(RB2, 115200, False, logWriter)
 
 droneControler.setOnReceiveEvent(onReceiveUsart)
 
-# time of test in seconds
-maxTime = 30
+# time parameters of test
+duration = 15.0 # [s]
+sendingFreq = 2.0 # [Hz]
 
 i = 0
-while i < maxTime*2:
+while i < sendingFreq * duration:
     i += 1
     droneControler.sendCommData(ControlData.SomeValidControlCommand())
-    time.sleep(0.5)
+    time.sleep(1 / sendingFreq)
         
 i = 0
-while i < 2:
+while i < sendingFreq * 1:
     i += 1
     droneControler.sendCommData(ControlData.StopCommand())
-    time.sleep(0.5)
+    time.sleep(1 / sendingFreq)
 
 droneControler.close()
 
