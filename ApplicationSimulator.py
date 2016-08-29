@@ -52,7 +52,7 @@ signal.signal(signal.SIGTERM, endHandler)
 droneSimulator = DroneSimulator(logWriter)
 
 serverName = ""  # "localhost"
-serverPort = 6667
+serverPort = 6666
 
 ipController = IpController((serverName, serverPort), False, False, 5, logWriter)
 
@@ -62,6 +62,7 @@ ipController = IpController((serverName, serverPort), False, False, 5, logWriter
 # forwards valid CommData to IpController
 def onReceiveCommDataFromSymulator(commData):
     global ipController
+    print "Sending: " + str(commData)
     ipController.sendCommData(commData.data)
 
 droneSimulator.setOnReceiveEvent(onReceiveCommDataFromSymulator)
@@ -70,6 +71,7 @@ droneSimulator.setOnReceiveEvent(onReceiveCommDataFromSymulator)
 # forwards calid CommData to DroneSimulator
 def onReveiveCommDataFromIp(commData):
     global droneController
+    print "Received: " + str(commData)
     droneSimulator.notifyCommData(commData)
 
 ipController.setOnReceiveEvent(onReveiveCommDataFromIp)
@@ -80,8 +82,10 @@ ipController.setOnReceiveEvent(onReveiveCommDataFromIp)
 while not closeServerApp:
     print('MainThread: waiting for a connection')
     ipController.acceptConnection()
+    droneSimulator.start()
     while (ipController.keepConnection() and not closeServerApp):
         ipController.forwardIncomingPacket()
+    droneSimulator.close()
     print('MainThread: connection closed')
 
 endHandler(None,None)

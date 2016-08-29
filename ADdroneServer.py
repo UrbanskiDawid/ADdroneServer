@@ -72,7 +72,6 @@ modem=ZTEmodem()
 ##UART part
 droneController=DroneController(SETTINGS.UARTDEVICE, \
                                 SETTINGS.UARTBAUDRATE, \
-                                SETTINGS.UARTSIMULATOR, \
                                 logWriter)
 ##-------
 

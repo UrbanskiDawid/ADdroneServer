@@ -42,10 +42,7 @@ class DroneSimulator:
     def __init__(self, logWriter):
         self.logWriter = logWriter
         self.onReceiveEvent = self.defaultOnReceiveEvent
-
-        self.simulatorThread = TimerThread('simulatorThread', self.simulatorThreadHandler, 0.1)
-        self.simulatorThread.start()
-
+      
         self.dataValue = DebugDataValue()
         self.dataValue.lat = 50.0
         self.dataValue.lon = 20.0
@@ -84,20 +81,24 @@ class DroneSimulator:
     def defaultOnReceiveEvent(self, commData):
       self.logWriter.noteEvent('DroneSimulator: defaultOnReceiveEvent' + str(commData))
 
+    def start(self):
+      self.simulatorThread = TimerThread('simulatorThread', self.simulatorThreadHandler, 0.2)
+      self.simulatorThread.start()
+
     def close(self):
       print('DroneSimulator: close');
-      self.simulatorThread.stop()
+      if self.simulatorThread != None:
+          self.simulatorThread.stop()
 
 
     def notifyCommData(self, commData):
-        if (commData.getTypeString() == 'ControlData'):
+        if (commData.typeString() == 'ControlData'):
             controlDataValue = commData.getValue()
             if controlDataValue.throttle > 0.03:
                 self.receivedCommand = controlDataValue.controllerCommand
             else:
                 self.receivedCommand = 0   
-        print str(commData)
-
+        
 
     def simulatorThreadHandler(self):
         timeVal = time.time()
@@ -126,4 +127,3 @@ class DroneSimulator:
        
         log_msg = 'DroneSimulator: DebugData: [' + str(debugMessage) + ']'
         self.logWriter.noteEvent(log_msg)
-        print log_msg 
