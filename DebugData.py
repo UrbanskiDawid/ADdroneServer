@@ -35,7 +35,10 @@ class DebugData(CommData):
     def SomeValidDebugMessage():
         from DebugDataValue import DebugDataValue
         dataValue = DebugDataValue()
-        dataValue.controllerState = 1000 # STOP
+        dataValue.lat = 50.0
+        dataValue.lon = 20.0
+        dataValue.alt = 1000.0
+        dataValue.controllerState = 1000
         dataValue.battery = 10
         dataValue.flags = 10
         dataValue.CRC = 0

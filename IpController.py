@@ -78,6 +78,7 @@ class IpController:
             # forward data to DronController
             self.onReceiveEvent(controlData)
             log_msg = 'IpController: ControlData received: [' + str(controlData) + ']'
+	    print log_msg
         else:
             log_msg = 'IpController: INVALID ControlData received: [' + controlDataMsg + ']'
         self.logWriter.noteEvent(log_msg)
