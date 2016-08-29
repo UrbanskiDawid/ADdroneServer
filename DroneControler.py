@@ -23,15 +23,8 @@ class DroneController:
 
     streamProcessor = None
 
-    #uartDev - None if usartFake=true
-    #usartBaundRate - None if usartFake=true
-    #usartFake - True -> UartController else FakeUartController
-    def __init__(self,uartDev, usartBaundRate, usartFake, logWriter):
-
-        if usartFake == True:
-            self.uartController = FakeUartController()
-        else:
-            self.uartController = UartController(uartDev, usartBaundRate)
+    def __init__(self,uartDev, usartBaundRate, logWriter):
+        self.uartController = UartController(uartDev, usartBaundRate)
 
         self.logWriter = logWriter
         self.onReceiveEvent = self.defaultOnReceiveEvent

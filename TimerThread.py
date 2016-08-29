@@ -13,7 +13,7 @@ class TimerThread(Thread):
     def run(self):
         while not self.stopped.wait(self.interval):
             if self.stopped.isSet():
-                print "TimerThread: Breaking ",self.name,"thread."
+                #print "TimerThread: Breaking ",self.name,"thread."
                 break
             self.handler()
 

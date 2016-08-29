@@ -59,7 +59,7 @@ class DebugDataValue(CommDataValue):
         return DebugData(data)
 
     def toString(self):
-        return "(rpy: ({0:.2f},{1:.2f},{2:.2f}), pos: ({3:.2f},{4:.2f},{5:.2f}), state: {6:d} CRC: 0x{7:04X})".format(
+        return "(rpy: ({0:.2f},{1:.2f},{2:.2f}), pos: ({3:.4f},{4:.4f},{5:.2f}), state: {6:d} CRC: 0x{7:04X})".format(
             self.roll, self.pitch, self.yaw,
             self.lat, self.lon, self.alt,
             self.controllerState,
