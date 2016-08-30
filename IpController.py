@@ -89,7 +89,7 @@ class IpController:
         log_msg = 'IpController: Signal received [0x' + str(signalPongMsg.encode("hex")) + ']'
         self.logWriter.noteEvent(log_msg)
 
-    # event called by StreamProcessor - on autopilota preamble
+    # event called by StreamProcessor - on autopilot preamble
     def onReceiveAutopilot(self, autopilotDataMsg):
         autopilotData = AutopilotData(autopilotDataMsg)
         if autopilotData.isValid():

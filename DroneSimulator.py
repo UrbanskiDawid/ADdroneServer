@@ -16,21 +16,21 @@ class DroneSimulator:
     dataValue = None
 
     aRoll = 0.3
-    fRoll = 1.0
+    fRoll = 0.8
 
     aPitch = 0.2
-    fPitch = 1.9
+    fPitch = 1.4
 
     aYaw = 0.08
-    fYaw = 0.8
+    fYaw = 0.2
     mYaw = 0.05
 
-    aLat = 0.00001
-    fLat = 0.002
+    aLat = 0.00003
+    fLat = 0.01
     mLat = 0.000002
 
-    aLon = 0.00002
-    fLon = 0.006
+    aLon = 0.00003
+    fLon = 0.01
     mLon = 0.000001
 
     aAlt = 0.1
@@ -44,9 +44,6 @@ class DroneSimulator:
         self.onReceiveEvent = self.defaultOnReceiveEvent
       
         self.dataValue = DebugDataValue()
-        self.dataValue.lat = 50.0
-        self.dataValue.lon = 20.0
-        self.dataValue.alt = 1000.0
         self.dataValue.controllerState = 1000
         self.dataValue.battery = 10
         self.dataValue.flags = 10
@@ -76,14 +73,18 @@ class DroneSimulator:
 
     #onReceiveEvent - call this function when new CommData is received via UART
     def setOnReceiveEvent(self, onReceiveEvent):
-      self.onReceiveEvent = onReceiveEvent
+        self.onReceiveEvent = onReceiveEvent
 
     def defaultOnReceiveEvent(self, commData):
-      self.logWriter.noteEvent('DroneSimulator: defaultOnReceiveEvent' + str(commData))
+        self.logWriter.noteEvent('DroneSimulator: defaultOnReceiveEvent' + str(commData))
 
     def start(self):
-      self.simulatorThread = TimerThread('simulatorThread', self.simulatorThreadHandler, 0.2)
-      self.simulatorThread.start()
+        self.dataValue.lat = 50.0 + (random.random() - 0.5)
+        self.dataValue.lon = 20.0 + (random.random() - 0.5)
+        self.dataValue.alt = 40.0 + (random.random() - 0.5)*5
+
+        self.simulatorThread = TimerThread('simulatorThread', self.simulatorThreadHandler, 0.2)
+        self.simulatorThread.start()
 
     def close(self):
       print('DroneSimulator: close');

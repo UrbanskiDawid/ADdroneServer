@@ -62,7 +62,7 @@ ipController = IpController((serverName, serverPort), False, False, 5, logWriter
 # forwards valid CommData to IpController
 def onReceiveCommDataFromSymulator(commData):
     global ipController
-    print "Sending: " + str(commData)
+    #print "Sending: " + str(commData)
     ipController.sendCommData(commData.data)
 
 droneSimulator.setOnReceiveEvent(onReceiveCommDataFromSymulator)
