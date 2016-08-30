@@ -2,6 +2,7 @@ import socket
 import sys
 import time
 from ControlData import *
+from AutopilotData import *
 from mockupSocket import *
 from TimerThread import *
 from StreamProcessor import *

@@ -42,7 +42,7 @@ class AutopilotDataValue(CommDataValue):
         return AutopilotData(data)
 
     def toString(self):
-        return "(rpy: ({0:.5f},{1:.5f},{2:.2f}), flags: {3:d}, CRC: 0x{5:04X})".format(
+        return "(rpy: ({0:.5f},{1:.5f},{2:.2f}), flags: {3:d}, CRC: 0x{4:04X})".format(
             self.lat, self.lon,
             self.alt,
             self.flags,
