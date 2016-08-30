@@ -94,11 +94,15 @@ class DroneSimulator:
 
     def notifyCommData(self, commData):
         if (commData.typeString() == 'ControlData'):
+            # process data as controller should do
             controlDataValue = commData.getValue()
             if controlDataValue.throttle > 0.03:
                 self.receivedCommand = controlDataValue.controllerCommand
             else:
                 self.receivedCommand = 0   
+        elif (commData.typeString() == 'AutopilotData'):
+            # respond with ACK (same data when success at changing target) as controller should do
+            self.onReceiveEvent(commData)
         
 
     def simulatorThreadHandler(self):
