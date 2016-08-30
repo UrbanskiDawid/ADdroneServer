@@ -12,6 +12,12 @@ class ControlData(CommData):
         from ControlDataValue import ControlDataValue
         return ControlDataValue(self)
 
+    def getSize(self):
+        return 38
+
+    def getPreamble(self):
+        return '$'
+
     def toStringHex(self):
         i=0
         sep=[4,8,12,16,20,22,23,36]

@@ -12,6 +12,12 @@ class DebugData(CommData):
         from DebugDataValue import DebugDataValue
         return DebugDataValue(self)
 
+    def getSize(self):
+        return 38
+
+    def getPreamble(self):
+        return '$'
+
     def toStringHex(self):
         i=0
         sep=[4,8,12,16,20,24,28,32,34,35,36]

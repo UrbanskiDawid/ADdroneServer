@@ -37,15 +37,15 @@ class CommData:
            self.valid=False
            return False
 
-        if len(self.data) != 38:
-           sys.stderr.write(self.typeString() + ' data len != 38\n')
+        if len(self.data) != self.getSize():
+           sys.stderr.write(self.typeString() + ' data len != ' + str(self.getSize()) + '\n')
            self.valid=False
            return False
 
-        if self.data[0]!='$' or \
-           self.data[1]!='$' or \
-           self.data[2]!='$' or \
-           self.data[3]!='$':
+        if self.data[0]!=self.getPreamble() or \
+           self.data[1]!=self.getPreamble() or \
+           self.data[2]!=self.getPreamble() or \
+           self.data[3]!=self.getPreamble():
            sys.stderr.write(self.typeString() + ' data wrong prefix\n')
            self.valid=False
            return False
@@ -62,6 +62,12 @@ class CommData:
         pass
 
     def getValue(self):
+        pass
+
+    def getSize(self):
+        pass
+
+    def getPreamble(self):
         pass
 
     def toStringHex(self):
