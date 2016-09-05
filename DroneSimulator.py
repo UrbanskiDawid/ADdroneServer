@@ -34,7 +34,7 @@ class DroneSimulator:
     mLon = 0.000001
 
     aAlt = 0.1
-    fAlt = 0.2
+    fAlt = 2
     mAlt = 0.1
 
     receivedCommand = 0
@@ -123,6 +123,8 @@ class DroneSimulator:
         self.dataValue.lat += math.sin(timeVal * self.fLat) * self.aLat + self.mLat;
         self.dataValue.lon += math.sin(timeVal * self.fLon) * self.aLon + self.mLon;
         self.dataValue.alt += math.sin(timeVal * self.fAlt) * self.aAlt + self.mAlt;
+
+        self.dataValue.speed = self.dataValue.alt / 2.3
 
         self.dataValue.controllerState = self.receivedCommand
 
