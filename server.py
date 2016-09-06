@@ -4,9 +4,16 @@ import struct
 import time
 import picamera
 
+print ("Starting...")
+
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind(('192.168.25.1', 25505))
 server_socket.listen(1)
+
+camera = picamera.PiCamera()
+camera.resolution = (720, 405)
+
+time.sleep(2)
 
 while True:
 
@@ -15,11 +22,6 @@ while True:
        socket, client_addr = server_socket.accept()
        print("connection from ", client_addr)
        connection = socket.makefile('wb')
-
-       camera = picamera.PiCamera()
-       camera.resolution = (720, 405)
-    
-       time.sleep(2)
     
        stream = io.BytesIO()
        start = time.time()
@@ -43,12 +45,8 @@ while True:
            stream.truncate()
 
        connection.write(struct.pack('<L', 0))
-   except:
-       print ("Exception!!!")
-   finally:
-       connection.close()
-
-   print ("adasdasd")
+   except ConnectionResetError as e:
+       print(type(e))
           
 server_socket.close()
 
