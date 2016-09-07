@@ -34,7 +34,7 @@ class DroneSimulator:
     mLon = 0.000001
 
     aAlt = 0.1
-    fAlt = 0.2
+    fAlt = 2
     mAlt = 0.1
 
     receivedCommand = 0
@@ -82,6 +82,8 @@ class DroneSimulator:
         self.dataValue.lat = 50.0 + (random.random() - 0.5)
         self.dataValue.lon = 20.0 + (random.random() - 0.5)
         self.dataValue.alt = 40.0 + (random.random() - 0.5)*5
+        
+        self.receivedCommand = 0 # Idle
 
         self.simulatorThread = TimerThread('simulatorThread', self.simulatorThreadHandler, 0.2)
         self.simulatorThread.start()
@@ -96,7 +98,7 @@ class DroneSimulator:
         if commData.typeString() == 'ControlData':
             # process data as controller should do
             controlDataValue = commData.getValue()
-            if controlDataValue.throttle > 0.03:
+            if controlDataValue.controllerCommand == 2000 or controlDataValue.throttle > 0.03:
                 self.receivedCommand = controlDataValue.controllerCommand
             else:
                 self.receivedCommand = 0   
@@ -121,6 +123,8 @@ class DroneSimulator:
         self.dataValue.lat += math.sin(timeVal * self.fLat) * self.aLat + self.mLat
         self.dataValue.lon += math.sin(timeVal * self.fLon) * self.aLon + self.mLon
         self.dataValue.alt += math.sin(timeVal * self.fAlt) * self.aAlt + self.mAlt
+
+        self.dataValue.speed = self.dataValue.alt / 2.3
 
         self.dataValue.controllerState = self.receivedCommand
 

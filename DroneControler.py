@@ -22,9 +22,11 @@ class DroneController:
     onReceiveEvent = None # Event to call when read data from USART
 
     streamProcessor = None
+    uartOpened = None
 
     def __init__(self,uartDev, usartBaundRate, logWriter):
         self.uartController = UartController(uartDev, usartBaundRate)
+        self.uartOpened = True
 
         self.logWriter = logWriter
         self.onReceiveEvent = self.defaultOnReceiveEvent
@@ -43,8 +45,16 @@ class DroneController:
         
     def close(self):
       print('DroneControler: close')
+      
+      if self.uartOpened: 
+          print ('DroneControler: UART opened, sending STOP command')
+          self.sendCommData(ControlData.StopCommand())
+          # wait for sending and response
+          time.sleep(1.5)
+
       TimerThread.kill(self.receivingThread)
       self.uartController.close()
+      self.uartOpened = False
               
     # Thread
     # uartConnection
