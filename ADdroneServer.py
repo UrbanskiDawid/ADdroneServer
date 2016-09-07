@@ -70,18 +70,18 @@ logWriter = LogWriter(customDIR+"/logs/")
 modem=ZTEmodem()
 
 ##UART part
-droneController=DroneController(SETTINGS.UARTDEVICE, \
-                                SETTINGS.UARTBAUDRATE, \
+droneController=DroneController(SETTINGS.UARTDEVICE,
+                                SETTINGS.UARTBAUDRATE,
                                 logWriter)
 ##-------
 
 ##IP part
 server_name = ""  # "localhost"
-ipController = IpController( (server_name, SETTINGS.PORT), \
-                        SETTINGS.TCPSIMULATOR, \
-                        True, \
-                        SETTINGS.BINDRETRYNUM, \
-                        logWriter)
+ipController = IpController( (server_name, SETTINGS.PORT),
+                             SETTINGS.TCPSIMULATOR,
+                             True,
+                             SETTINGS.BINDRETRYNUM,
+                             logWriter)
 ##--
 
 ###########################################################################
@@ -93,7 +93,7 @@ def endHandler(signal, frame):
   global ipController
   global droneController
   global modemThread
-  logWriter.noteEvent("MainThread: endHandler");
+  logWriter.noteEvent("MainThread: endHandler")
   ipController.close()
   droneController.close()
   modemThread.stop()
@@ -152,19 +152,19 @@ modemThread.start()
 ## MAIN LOOP
 ###########################################################################
 
-if SETTINGS.TCPSIMULATOR == True:
+if SETTINGS.TCPSIMULATOR:
     print('MainThread: Using port simulator')
 else:
     print('MainThread: Using port number ' + str(SETTINGS.PORT))
 
 log_msg="MainThread: starting"+str(os.getpid())
-logWriter.noteEvent(log_msg);
+logWriter.noteEvent(log_msg)
 print log_msg
 
 while not closeServerApp:
     print('MainThread: waiting for a connection')
     ipController.acceptConnection()
-    while (ipController.keepConnection() and not closeServerApp):
+    while ipController.keepConnection() and not closeServerApp:
         ipController.forwardIncomingPacket()
     print('MainThread: connection closed')
 

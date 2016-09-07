@@ -48,7 +48,7 @@ class IpController:
         self.onReceiveEvent = receiveEvent
 
     def defaultOnReciveEvent(self, commData):
-        self.logWriter.noteEvent('IpController: defaultOnReceiveEvent, data: ' + str(commData));
+        self.logWriter.noteEvent('IpController: defaultOnReceiveEvent, data: ' + str(commData))
 
     def acceptConnection(self):
         self.keepConnectionFlag = False
@@ -59,7 +59,7 @@ class IpController:
                                  str(self.client_address))
 
     def icConnected(self):
-        return not (self.connection == None)
+        return not (self.connection is None)
 
     def sendCommData(self, data):
         if not self.icConnected():

@@ -13,7 +13,7 @@ class MessageTest(unittest.TestCase):
         self.assertEqual(result, False)
 
     def test_isValidCommand_basicValidMessage_True(self):
-        ''' Now it fails! '''
+        """ Now it fails! """
         sut = Message('$$$$ffffffffffffffffkkm000000000000000')
         result = sut.isValidCommand()
         self.assertEqual(result, True)

@@ -35,7 +35,7 @@ def endHandler(signal, frame):
     global closeServerApp
     global droneSimulator
     global ipController
-    logWriter.noteEvent("MainThread: endHandler");
+    logWriter.noteEvent("MainThread: endHandler")
     droneSimulator.close()
     ipController.close()
     closeServerApp = True
@@ -70,7 +70,7 @@ droneSimulator.setOnReceiveEvent(onReceiveCommDataFromSymulator)
 # hanlder for IpController onReceiveEvent
 # forwards calid CommData to DroneSimulator
 def onReveiveCommDataFromIp(commData):
-    global droneController
+    global droneSimulator
     print "Received: " + str(commData)
     droneSimulator.notifyCommData(commData)
 
@@ -83,7 +83,7 @@ while not closeServerApp:
     print('MainThread: waiting for a connection')
     ipController.acceptConnection()
     droneSimulator.start()
-    while (ipController.keepConnection() and not closeServerApp):
+    while ipController.keepConnection() and not closeServerApp:
         ipController.forwardIncomingPacket()
     droneSimulator.close()
     print('MainThread: connection closed')

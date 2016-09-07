@@ -87,20 +87,20 @@ class DroneSimulator:
         self.simulatorThread.start()
 
     def close(self):
-      print('DroneSimulator: close');
-      if self.simulatorThread != None:
+      print('DroneSimulator: close')
+      if self.simulatorThread is not None:
           self.simulatorThread.stop()
 
 
     def notifyCommData(self, commData):
-        if (commData.typeString() == 'ControlData'):
+        if commData.typeString() == 'ControlData':
             # process data as controller should do
             controlDataValue = commData.getValue()
             if controlDataValue.throttle > 0.03:
                 self.receivedCommand = controlDataValue.controllerCommand
             else:
                 self.receivedCommand = 0   
-        elif (commData.typeString() == 'AutopilotData'):
+        elif commData.typeString() == 'AutopilotData':
             # respond with ACK (same data when success at changing target) as controller should do
             self.onReceiveEvent(commData)
         
@@ -108,9 +108,9 @@ class DroneSimulator:
     def simulatorThreadHandler(self):
         timeVal = time.time()
 
-        self.dataValue.roll = math.sin(timeVal * self.fRoll) * self.aRoll; 
-        self.dataValue.pitch = math.sin(timeVal * self.fPitch) * self.aPitch; 
-        self.dataValue.yaw += math.sin(timeVal * self.fYaw) * self.aYaw + self.mYaw;
+        self.dataValue.roll = math.sin(timeVal * self.fRoll) * self.aRoll
+        self.dataValue.pitch = math.sin(timeVal * self.fPitch) * self.aPitch
+        self.dataValue.yaw += math.sin(timeVal * self.fYaw) * self.aYaw + self.mYaw
 
         if self.dataValue.yaw > 3.14:
             self.dataValue.yaw -= 2 * 3.14
@@ -118,9 +118,9 @@ class DroneSimulator:
         if self.dataValue.yaw < -3.14:
             self.dataValue.yaw += 2 * 3.14
 
-        self.dataValue.lat += math.sin(timeVal * self.fLat) * self.aLat + self.mLat;
-        self.dataValue.lon += math.sin(timeVal * self.fLon) * self.aLon + self.mLon;
-        self.dataValue.alt += math.sin(timeVal * self.fAlt) * self.aAlt + self.mAlt;
+        self.dataValue.lat += math.sin(timeVal * self.fLat) * self.aLat + self.mLat
+        self.dataValue.lon += math.sin(timeVal * self.fLon) * self.aLon + self.mLon
+        self.dataValue.alt += math.sin(timeVal * self.fAlt) * self.aAlt + self.mAlt
 
         self.dataValue.controllerState = self.receivedCommand
 

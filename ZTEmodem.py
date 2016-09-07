@@ -8,6 +8,9 @@ import json
 class ZTEmodem:
 
   #subscribe to this values
+  def __init__(self):
+      pass
+
   cmds=[
     'modem_main_state',
     'network_provider',

@@ -23,8 +23,8 @@ class TimerThread(Thread):
 
     @staticmethod
     def kill(timerThread):
-      if timerThread==None:
-        return;
+      if timerThread is None:
+        return
       timerThread.stop()
       timerThread.join()
       timerThread = None

@@ -5,7 +5,7 @@ from DebugData import DebugData
 class DebugDataValue(CommDataValue):
 
     # debug communication data struct
-    messageFormat = ('<4s3f3ffHBBH')
+    messageFormat = '<4s3f3ffHBBH'
     # example: ('$$$$', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1000, 10, 10, 65535)
     # '<'         encoding = network = big endian
     # 0     '4s'        # preamble $$$$

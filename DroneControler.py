@@ -42,7 +42,7 @@ class DroneController:
       self.logWriter.noteEvent('DroneController: defaultOnReceiveEvent' + str(commData))
         
     def close(self):
-      print('DroneControler: close');
+      print('DroneControler: close')
       TimerThread.kill(self.receivingThread)
       self.uartController.close()
               

@@ -3,10 +3,10 @@ from LogWriter import *
 
 logWriter = LogWriter('logs/')
 
-receiver = IpController('', \
-                        True, \
-                        False, \
-                        10, \
+receiver = IpController('',
+                        True,
+                        False,
+                        10,
                         logWriter)
 
 
@@ -18,11 +18,11 @@ receiver.setOnReceiveEvent(onReveiveControlDataFromIP)
 
 print('MainThread: waiting for a connection')
 receiver.acceptConnection()
-while (receiver.keepConnection()):
+while receiver.keepConnection():
     receiver.forwardIncomingPacket()
 print('MainThread: connection closed')
 
-logWriter.noteEvent("MainThread: endHandler");
+logWriter.noteEvent("MainThread: endHandler")
 receiver.close()
 logWriter.close()
 
