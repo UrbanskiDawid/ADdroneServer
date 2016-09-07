@@ -58,7 +58,7 @@ class CommData:
         self.valid=True
         return True
 
-    def typeString():
+    def typeString(self):
         pass
 
     def getValue(self):

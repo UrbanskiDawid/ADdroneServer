@@ -38,7 +38,7 @@ while True:
            stream.seek(0)
            connection.write(stream.read())
         
-           if(time.time() - start > 1200):
+           if time.time() - start > 1200:
                break
 
            stream.seek(0)
