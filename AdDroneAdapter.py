@@ -2,6 +2,7 @@ import socket
 import sys
 import time
 from TimerThread import *
+from UartController import *
 
 class AdapterServer:
     sock = None
@@ -13,6 +14,8 @@ class AdapterServer:
 
     def __init__(self, server_address, retryNumBind):
         self.onReceiveEvent = self.defaultOnReceiveEvent
+
+	self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         tryNum = retryNumBind
         while True:
@@ -27,6 +30,7 @@ class AdapterServer:
                     # end of method execution - exception raised
                 time.sleep(5)
         self.sock.listen(1)
+        print "AdapterServer: binded at", str(server_address)
 
 
     def setOnReceiveEvent(self, receiveEvent):
@@ -69,12 +73,15 @@ class AdapterServer:
 
         usart.send(data)
 
+    def keepConnection(self):
+		return self.keepConnectionFlag
+
     def close(self):
         self.keepConnectionFlag = False
         self.sock.close()
 
 # server for IP connection
-adapterServer = AdapterServer((server_name, SETTINGS.PORT), 5)
+adapterServer = AdapterServer(('', 10003), 5)
 
 # USART controller for board connection
 usartController = UartController("/dev/ttyAMA0", 115200)
@@ -87,7 +94,7 @@ def usartReceivingThreadHandle():
     if dataLength != 0:
         adapterServer.sendData(data)
 
-receivingThread = TimerThread('receivingThread', receiveThread, 0.02) # 50 Hz
+receivingThread = TimerThread('receivingThread', usartReceivingThreadHandle, 0.02) # 50 Hz
 
 
 print('MainThread: waiting for a connection')
@@ -97,6 +104,7 @@ while adapterServer.keepConnection():
     adapterServer.forwardData(usartController)
 print('MainThread: connection closed')
 print "Cosing interfaces..."
+
 
 receivingThread.stop()
 
