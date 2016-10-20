@@ -7,7 +7,7 @@ import picamera
 print ("Starting...")
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('192.168.25.1', 25505))
+server_socket.bind(('', 25505))
 server_socket.listen(1)
 
 camera = picamera.PiCamera()
