@@ -1,6 +1,7 @@
 import socket
 import sys
 import time
+import signal,sys,os,threading
 from TimerThread import *
 from UartController import *
 
@@ -80,6 +81,29 @@ class AdapterServer:
         self.keepConnectionFlag = False
         self.sock.close()
 
+def endHandler(signal, frame):
+  print('MainThread: end handler called')
+  global adapterServer
+  global usartController
+  global receivingThread
+  receivingThread.stop()
+  adapterServer.close()
+  usartController.close()
+  print "Exiting!"
+  sys.exit(0)
+
+signal.signal(signal.SIGINT,  endHandler)
+signal.signal(signal.SIGTERM, endHandler)
+
+def topExceptHook(type, value, traceback):
+  print "MainThread: unhandled Exception "
+  for line in format_exception(type, value, traceback):
+    print line,
+
+  endHandler(None,None)
+
+sys.excepthook = topExceptHook
+
 # server for IP connection
 adapterServer = AdapterServer(('', 10003), 5)
 
@@ -96,22 +120,19 @@ def usartReceivingThreadHandle():
 
 receivingThread = TimerThread('receivingThread', usartReceivingThreadHandle, 0.02) # 50 Hz
 
-
-print('MainThread: waiting for a connection')
-adapterServer.acceptConnection()
 receivingThread.start()
-while adapterServer.keepConnection():
-    adapterServer.forwardData(usartController)
-print('MainThread: connection closed')
+
+while True:
+    print('MainThread: waiting for a connection')
+    adapterServer.acceptConnection()
+    while adapterServer.keepConnection():
+        adapterServer.forwardData(usartController)
+    print('MainThread: connection closed')
+
+
 print "Cosing interfaces..."
 
-
-receivingThread.stop()
-
-adapterServer.close()
-usartController.close()
-
-print "Done!"
+endHandler()
 
 
 
